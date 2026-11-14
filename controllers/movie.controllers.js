@@ -1,84 +1,91 @@
-const Movie = require('../models/movie.model');
-const mongoose = require('mongoose');
+const movieService = require('../services/movie.service');
 
 const createMovie = async (req, res) => {
-        try{
-            const movie = await Movie.create(req.body);
-            return res.status(201).json({
-                success: true,
-                error: {},
-                message: "Movie created successfully",
-                data: movie
-            });
-        }catch(err){
-            console.error('Error while creating movie:', err);
-            return res.status(500).json({
+    try {
+        const response = await movieService.createMovie(req.body);
+        if (response.err) {
+            return res.status(response.code).json({
                 success: false,
-                error: err.message,
-                message: "Internal server error",
+                err: response.err,
+                message: "Validation failed on few parameters of the request body",
                 data: {}
             });
         }
-}
-
-const getAllMovies = async (req, res) => {
-    try{
-        const movies = await Movie.find();
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
-            error: {},
-            message: "Movies fetched successfully",
-            data: movies
+            err: {},
+            message: "Successfully created the movie",
+            data: response.movie
         });
-    }catch(err){
-        console.error('Error while fetching movies:', err);
+    } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
-            error: err.message,
+            err: err.message,
             message: "Internal server error",
             data: {}
         });
     }
-}
+};
 
-const getMovieById = async (req, res) => {
-    try{
-        if(!mongoose.isValidObjectId(req.params.id)){
-            return res.status(400).json({
+const deleteMovie = async (req, res) => {
+    try {
+        const response = await movieService.deleteMovie(req.params.id);
+        if (response.err) {
+            return res.status(response.code).json({
                 success: false,
-                error: {},
-                message: "Invalid movie id",
-                data: {}
-            });
-        }
-        const movie = await Movie.findById(req.params.id);
-        if(!movie){
-            return res.status(404).json({
-                success: false,
-                error: {},
-                message: "Movie not found",
+                err: response.err,
+                message: "Unable to delete the movie",
                 data: {}
             });
         }
         return res.status(200).json({
             success: true,
-            error: {},
-            message: "Movie fetched successfully",
-            data: movie
+            err: {},
+            message: "Successfully deleted the movie",
+            data: response.movie
         });
-    }catch(err){
-        console.error('Error while fetching movie:', err);
+    } catch (err) {
+        console.log(err);
         return res.status(500).json({
             success: false,
-            error: err.message,
+            err: err.message,
             message: "Internal server error",
             data: {}
         });
     }
-}
+};
+
+const getMovie = async (req, res) => {
+    try {
+        const response = await movieService.getMovieById(req.params.id);
+        if (response.err) {
+            return res.status(response.code).json({
+                success: false,
+                err: response.err,
+                message: "Unable to fetch the movie",
+                data: {}
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            err: {},
+            message: "Successfully fetched the movie",
+            data: response.movie
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            err: err.message,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+};
 
 module.exports = {
     createMovie,
-    getAllMovies,
-    getMovieById
-}
+    deleteMovie,
+    getMovie
+};
