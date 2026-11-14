@@ -1,9 +1,23 @@
-const MovieController = require('../controllers/movie.controllers');
+const movieController = require('../controllers/movie.controllers');
+const movieMiddlewares = require('../middlewares/movie.middlewares');
+
 
 const routes = (app) => {
-    app.post('/mba/api/v1/movie', MovieController.createMovie);
-    app.get('/mba/api/v1/movies', MovieController.getAllMovies);
-    app.get('/mba/api/v1/movie/:id', MovieController.getMovieById);
+    app.post(
+        '/mba/api/v1/movies', 
+        movieMiddlewares.validateMovieCreateRequest,
+        movieController.createMovie
+    );
+
+    app.delete(
+        '/mba/api/v1/movies/:id',
+        movieController.deleteMovie
+    );
+
+     app.get(
+        '/mba/api/v1/movies/:id',
+        movieController.getMovie
+    );
 }
 
 module.exports = routes;
