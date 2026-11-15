@@ -84,8 +84,67 @@ const getMovie = async (req, res) => {
     }
 };
 
+const updateMovie = async (req, res) => {
+    try {
+        const response = await movieService.updateMovie(req.params.id, req.body);
+        if (response.err) {
+            return res.status(response.code).json({
+                success: false,
+                err: response.err,
+                message: "Unable to update the movie",
+                data: {}
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            err: {},
+            message: "Successfully updated the movie",
+            data: response.movie
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            err: err.message,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+}
+
+const getMovies = async (req, res) => {
+    try {
+        const response = await movieService.fetchMovies(req.query);
+        if (response.err) {
+            return res.status(response.code).json({
+                success: false,
+                err: response.err,
+                message: "Unable to fetch the movies",
+                data: {}
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            err: {},
+            message: "Successfully fetched the movies",
+            data: response.movies
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            err: err.message,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+}
+
+
 module.exports = {
     createMovie,
     deleteMovie,
-    getMovie
+    getMovie,
+    updateMovie,
+    getMovies
 };
