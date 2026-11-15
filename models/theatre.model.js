@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+//theatre schema
+
 const theatreSchema = new mongoose.Schema({
     name: {
         type: String,
