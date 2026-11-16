@@ -186,11 +186,28 @@ const updateMovies = async (req, res) => {
     }
 }
 
+const update = async (req, res) => {
+    try {
+        const response = await theatreService.updateTheatre(req.params.id, req.body);
+        successResponseBody.data = response;
+        successResponseBody.message = "Successfully updated the theatre";
+        return res.status(STATUS.OK).json(successResponseBody);
+    } catch (error) {
+        if(error.err) {
+            errorResponseBody.err = error.err;
+            return res.status(error.code).json(errorResponseBody);
+        }
+        errorResponseBody.err = error;
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+    }
+}
+
 module.exports = {
     create,
     destroy,
     getTheatre,
     getAllTheatres,
     updateTheatre,
-    updateMovies
+    updateMovies,
+    update
 };
