@@ -101,18 +101,21 @@ const updateTheatre = async (id, data) => {
 
 /**
  * Fetches theatres matching optional filters.
- * @param {Object} [filter={}] - Query filters (currently supports `name` and `city`).
+ * @param {Object} [filter={}] - Query filters (currently supports `name`, `city`, `pincode`).
  * @returns {Promise<{theatres?: Object[], err?: string, code?: number}>} List of theatres, or an error object.
  */
 const getAllTheatres = async (filter = {}) => {
     try {
-        // Build a dynamic query; only supported filters (name, city) are applied.
+        // Build a dynamic query; only supported filters (name, city, pincode) are applied.
         const query = {};
         if (filter.name) {
             query.name = filter.name;
         }
         if (filter.city) {
             query.city = filter.city;
+        }
+        if (filter.pincode) {
+            query.pincode = filter.pincode;
         }
         const theatres = await Theatre.find(query);
         return { theatres };
