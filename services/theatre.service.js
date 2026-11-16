@@ -104,24 +104,42 @@ const updateTheatre = async (id, data) => {
  * @param {Object} [filter={}] - Query filters (currently supports `name`, `city`, `pincode`).
  * @returns {Promise<{theatres?: Object[], err?: string, code?: number}>} List of theatres, or an error object.
  */
-const getAllTheatres = async (filter = {}) => {
+const getAllTheatres = async (data) => {
     try {
-        // Build a dynamic query; only supported filters (name, city, pincode) are applied.
-        const query = {};
-        if (filter.name) {
-            query.name = filter.name;
+        let query = {};
+        let pagination = {};
+        if(data && data.city) {
+            // this checks whether city is present in query params or not
+            query.city = data.city;
+        } 
+        if(data && data.pincode) {
+            // this checks whether pincode is present in query params or not
+            query.pincode = data.pincode;
         }
-        if (filter.city) {
-            query.city = filter.city;
+        if(data && data.name) {
+            // this checks whether name is present in query params or not 
+            query.name = data.name;
         }
-        if (filter.pincode) {
-            query.pincode = filter.pincode;
+
+        if(data && data.movieId) {
+            query.movies = {$all: data.movieId};
         }
-        const theatres = await Theatre.find(query);
-        return { theatres };
-    } catch (err) {
-        return { err: err.message, code: STATUS.INTERNAL_SERVER_ERROR };
-    }
+
+        if(data && data.limit) {
+            pagination.limit = data.limit;
+        }
+        
+        if(data && data.skip) {
+            // for first page we send skip as 0
+            let perPage = (data.limit) ? data.limit : 3;
+            pagination.skip = data.skip*perPage;
+        }
+        const response = await Theatre.find(query, {}, pagination); // {pincode: 110031, movies: {$all: movie}}
+        return { theatres: response };
+    } catch (error) {
+        console.log(error);
+        throw error;
+    } 
 }
 
 const updateMoviesInTheatres = async (theatreId, movieIds, insert) => {
