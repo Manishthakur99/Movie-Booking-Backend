@@ -1,15 +1,28 @@
 const theatreService = require('../services/theatre.service');
 const { successResponseBody, errorResponseBody } = require('../utils/responsebody');
 
+// Local status codes referenced by the controller handlers below.
 const STATUS = {
     OK: 200,
     INTERNAL_SERVER_ERROR: 500,
     NOT_FOUND: 404
 };
 
+// NOTE: `successResponseBody` / `errorResponseBody` are shared singleton objects
+// (see utils/responsebody.js). Mutating them here is unsafe under concurrency;
+// this file was kept as-is but should ideally build a fresh object per request.
+
+/**
+ * Creates a new theatre.
+ * @param {Request} req - Express request; theatre payload is in `req.body`.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with status 201 on success or an error status.
+ */
 const create = async (req, res) => {
     try {
         const data = { ...req.body };
+        // If an authenticated user is attached (by a future auth middleware),
+        // set them as the theatre owner.
         if (req.user) {
             data.owner = req.user;
         }
@@ -41,6 +54,12 @@ const create = async (req, res) => {
     }
 };
 
+/**
+ * Deletes a theatre by id.
+ * @param {Request} req - Express request; `req.params.id` is the theatre id.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with status 200 on success or an error status.
+ */
 const destroy = async (req, res) => {
     try {
         const response = await theatreService.deleteTheatre(req.params.id);
@@ -57,6 +76,12 @@ const destroy = async (req, res) => {
     }
 }
 
+/**
+ * Fetches a single theatre by id.
+ * @param {Request} req - Express request; `req.params.id` is the theatre id.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with status 200 on success or an error status.
+ */
 const getTheatre = async (req, res) => {
     try {
         const response = await theatreService.getTheatre(req.params.id);
@@ -73,6 +98,12 @@ const getTheatre = async (req, res) => {
     }
 }
 
+/**
+ * Fetches a list of theatres.
+ * @param {Request} req - Express request; optional filters are in `req.query`.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with status 200 on success or an error status.
+ */
 const getAllTheatres = async (req, res) => {
     try {
         const response = await theatreService.getAllTheatres(req.query);
@@ -101,6 +132,12 @@ const getAllTheatres = async (req, res) => {
     }
 }
 
+/**
+ * Updates a theatre by id (full or partial).
+ * @param {Request} req - Express request; `req.params.id` is the theatre id, `req.body` holds the fields to update.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with status 200 on success or an error status.
+ */
 const updateTheatre = async (req, res) => {
     try {
         const response = await theatreService.updateTheatre(req.params.id, req.body);

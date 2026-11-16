@@ -1,3 +1,4 @@
+// Shared bad-request template for movie validation failures.
 const badRequestResponse = {
     success: false,
     err: "",
@@ -5,6 +6,15 @@ const badRequestResponse = {
     message: "Malformed Request | Bad Request"
 };
 
+/**
+ * Middleware that runs before POST /mba/api/v1/movies.
+ * Performs lightweight presence checks on the request body; deeper
+ * schema-level validation (minLength, required) is left to Mongoose.
+ * @param {Request} req - Express request; movie payload is in `req.body`.
+ * @param {Response} res - Express response used to send a 400 error on invalid input.
+ * @param {Function} next - Passes control to the next handler when validation succeeds.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 400 response.
+ */
 const validateMovieCreateRequest = async (req, res, next) => {
     // validate the movie name
     if(!req.body.name) {
@@ -18,7 +28,7 @@ const validateMovieCreateRequest = async (req, res, next) => {
         return res.status(400).json(badRequestResponse);
     }
 
-    // validate the movie casts
+    // validate the movie casts: must be a non-empty array
     if(!req.body.casts || 
        !(req.body.casts instanceof Array) ||
        req.body.casts.length <= 0

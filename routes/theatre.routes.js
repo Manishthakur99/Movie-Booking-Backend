@@ -1,9 +1,13 @@
 const theatreController = require('../controllers/theatre.controller');
 const theatreMiddleware = require('../middlewares/theatre.middleware');
 
+/**
+ * Registers all theatre endpoints on the Express app.
+ * Base path: /mba/api/v1/theatres
+ * @param {import('express').Application} app - The Express app instance.
+ * @returns {void}
+ */
 const routes = (app) => {
-    // routes function takes express app object as parameter
-
     // CREATE
     app.post(
         '/mba/api/v1/theatres',
@@ -11,22 +15,25 @@ const routes = (app) => {
         theatreController.create
     );
 
+    // DELETE
     app.delete(
         '/mba/api/v1/theatres/:id',
         theatreController.destroy
     );
 
-    // READ
+    // READ (single)
     app.get(
         '/mba/api/v1/theatres/:id',
         theatreController.getTheatre
     );
 
+    // READ (list)
     app.get(
         '/mba/api/v1/theatres',
         theatreController.getAllTheatres
     );
 
+    // UPDATE (PUT for full replace, PATCH for partial update)
     app.put(
         '/mba/api/v1/theatres/:id',
         theatreController.updateTheatre

@@ -6,42 +6,29 @@ const mongoose = require('mongoose');
 const MovieRoutes = require('./routes/movie.routes');
 const theatreRoutes = require('./routes/theatre.routes');
 
+// Load environment variables (PORT, DB_URL) from the .env file
 env.config();
+
 const app = express();
 
+// Parse incoming request bodies before they reach the route handlers
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// Register application routes on the app instance
 MovieRoutes(app);
 theatreRoutes(app);
 
-app.get('/home', (req, res) => {
-    console.log('Request received at /home');
-    return res.json({
-        sucess: true,
-        message: 'Welcome to the Movie Booking API'
-    });
-  
-});
 
+// Start the HTTP server first, then establish the DB connection.
+// This keeps the server responsive even if the DB is temporarily unavailable.
 app.listen(process.env.PORT, async () => {
   console.log(`Server is running on http://localhost:${process.env.PORT}`);
 
   try{
-  await mongoose.connect(process.env.DB_URL);
-  console.log('Connected to MongoDB');
-  // await Movie.create({
-  //   name: "The Batman",
-  //   description: "The Batman is a 2022 American superhero film based on the DC Comics character Batman. It is directed by Matt Reeves and stars Robert Pattinson as the titular character.",
-  //   casts: ["Robert Pattinson", "Zoë Kravitz", "Paul Dano"],
-  //   director: "Matt Reeves",
-  //   trailerUrl: "https://www.youtube.com/watch?v=mqqft2x_Aa4",
-  //   language: "English",
-  //   releaseDate: "2022-03-04",
-  //   releaseStatus: "RELEASED",
-  //   poster: "https://example.com/the-batman-poster.jpg"
-  // });
+    await mongoose.connect(process.env.DB_URL);
+    console.log('Connected to MongoDB');
   }catch(err){
-    console.error('Error while seeding data:', err);
+    console.error('Error while connecting to MongoDB:', err);
   }
 });
