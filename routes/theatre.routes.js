@@ -11,6 +11,31 @@ const routes = (app) => {
         theatreController.create
     );
 
+    app.delete(
+        '/mba/api/v1/theatres/:id',
+        theatreController.destroy
+    );
+
+    // READ
+    app.get(
+        '/mba/api/v1/theatres/:id',
+        theatreController.getTheatre
+    );
+
+    app.get(
+        '/mba/api/v1/theatres',
+        theatreController.getAllTheatres
+    );
+
+    app.put(
+        '/mba/api/v1/theatres/:id',
+        theatreController.updateTheatre
+    );
+
+    app.patch(
+        '/mba/api/v1/theatres/:id',
+        theatreController.updateTheatre
+    );
     
 }
 
