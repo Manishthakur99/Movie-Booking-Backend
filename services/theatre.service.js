@@ -16,15 +16,18 @@ const STATUS = {
  */
 const createTheatre = async (data) => {
     try {
+        // Create a new theatre document in MongoDB with the provided data
         const theatre = await Theatre.create(data);
         return { theatre };
     } catch (error) {
         // Flatten Mongoose ValidationError into a per-field error map.
         if (error.name === 'ValidationError') {
             let err = {};
+            // Extract error messages for each invalid field
             Object.keys(error.errors).forEach((key) => {
                 err[key] = error.errors[key].message;
             });
+            // Return 422 Unprocessable Entity for validation errors
             return { err, code: 422 };
         }
         console.log(error);
@@ -40,6 +43,7 @@ const createTheatre = async (data) => {
  */
 const getTheatre = async (id) => {
     try {
+        // Query MongoDB for theatre by its ObjectId
         const response = await Theatre.findById(id);
         if (!response) {
             // Thrown as an object so the controller can read `.err` and `.code`.
@@ -50,6 +54,7 @@ const getTheatre = async (id) => {
         }
         return response;
     } catch (error) {
+        // Log and re-throw any unexpected errors
         console.log(error);
         throw error;
     }
@@ -62,12 +67,16 @@ const getTheatre = async (id) => {
  */
 const deleteTheatre = async (id) => {
     try {
+        // Find theatre by id and delete it in one operation
         const theatre = await Theatre.findByIdAndDelete(id);
         if (!theatre) {
+            // Return error if theatre doesn't exist
             return { err: "No theatre found for the given id", code: STATUS.NOT_FOUND };
         }
+        // Return the deleted theatre document
         return { theatre };
     } catch (error) {
+        // Log and re-throw any unexpected errors
         console.log(error);
         throw error;
     }
@@ -84,15 +93,19 @@ const updateTheatre = async (id, data) => {
         // `new: true` returns the updated doc; `runValidators: true` re-validates updates.
         const theatre = await Theatre.findByIdAndUpdate(id, data, { new: true, runValidators: true });
         if (!theatre) {
+            // Return error if theatre doesn't exist
             return { err: "No theatre found for the given id", code: STATUS.NOT_FOUND };
         }
         return { theatre };
     } catch (error) {
+        // Handle validation errors
         if (error.name === 'ValidationError') {
             let err = {};
+            // Extract error messages for each invalid field
             Object.keys(error.errors).forEach((key) => {
                 err[key] = error.errors[key].message;
             });
+            // Return 422 Unprocessable Entity for validation errors
             return { err, code: 422 };
         }
         throw error;
@@ -117,13 +130,23 @@ const getAllTheatres = async (filter = {}) => {
         if (filter.pincode) {
             query.pincode = filter.pincode;
         }
+        // Execute query with the built filter
         const theatres = await Theatre.find(query);
         return { theatres };
     } catch (err) {
+        // Return 500 Internal Server Error for any unexpected errors
         return { err: err.message, code: STATUS.INTERNAL_SERVER_ERROR };
     }
 }
 
+/**
+ * Adds or removes movies from a theatre's movie list.
+ * @param {string} theatreId - Theatre ObjectId as a string.
+ * @param {string[]} movieIds - Array of Movie ObjectIds to add or remove.
+ * @param {boolean} insert - If true, adds movies; if false, removes movies.
+ * @returns {Promise<Object>} Updated theatre document with movies populated.
+ * @throws {Object} Throws `{ err, code: 404 }` when no theatre matches the id.
+ */
 const updateMoviesInTheatres = async (theatreId, movieIds, insert) => {
     try {
         let theatre;
@@ -156,6 +179,12 @@ const updateMoviesInTheatres = async (theatreId, movieIds, insert) => {
     }
 }
 
+/**
+ * Fetches a theatre with its associated movies populated.
+ * @param {string} id - Theatre ObjectId as a string.
+ * @returns {Promise<Object>} Theatre document with movies populated.
+ * @throws {Object} Throws `{ err, code: 404 }` when no theatre matches the id.
+ */
 const getMoviesInATheatre = async (id) => {
     try {
         const theatre = await Theatre.findById(id, {name: 1, movies: 1, address: 1}).populate('movies');
@@ -172,6 +201,13 @@ const getMoviesInATheatre = async (id) => {
     }
 }
 
+/**
+ * Checks if a movie is associated with a theatre.
+ * @param {string} theatreId - Theatre ObjectId as a string.
+ * @param {string} movieId - Movie ObjectId as a string.
+ * @returns {Promise<boolean>} True if the movie is in the theatre's movie list, false otherwise.
+ * @throws {Object} Throws `{ err, code: 404 }` when no theatre matches the id.
+ */
 const checkMovieInATheatre = async (theatreId, movieId) => {
     try {
         let response = await Theatre.findById(theatreId);
