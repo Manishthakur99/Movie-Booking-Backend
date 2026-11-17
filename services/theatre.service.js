@@ -174,11 +174,28 @@ const updateMoviesInTheatres = async (theatreId, movieIds, insert) => {
     }
 }
 
+const getMoviesInATheatre = async (id) => {
+    try {
+        const theatre = await Theatre.findById(id, {name: 1, movies: 1, address: 1}).populate('movies');
+        if(!theatre) {
+            throw {
+                err: 'No theatre with the given id found',
+                code: STATUS.NOT_FOUND
+            }
+        }
+        return theatre;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
 module.exports = {
     createTheatre,
     getTheatre,
     deleteTheatre,
     updateTheatre,
     getAllTheatres,
-    updateMoviesInTheatres
+    updateMoviesInTheatres,
+    getMoviesInATheatre
 }
