@@ -1,3 +1,8 @@
+/**
+ * Movie Booking Backend Server
+ * Main entry point that configures Express and MongoDB connection.
+ */
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const env = require('dotenv');
@@ -11,7 +16,7 @@ env.config();
 
 const app = express();
 
-// Parse incoming request bodies before they reach the route handlers
+// Middleware: Parse incoming request bodies before they reach the route handlers
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 

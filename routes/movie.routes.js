@@ -1,3 +1,8 @@
+/**
+ * Movie Routes Module
+ * Defines all routes for movie-related operations.
+ */
+
 const movieController = require('../controllers/movie.controllers');
 const movieMiddlewares = require('../middlewares/movie.middlewares');
 
@@ -8,20 +13,20 @@ const movieMiddlewares = require('../middlewares/movie.middlewares');
  * @returns {void}
  */
 const routes = (app) => {
-    // CREATE
+    // CREATE - Create a new movie (requires validation middleware)
     app.post(
         '/mba/api/v1/movies', 
         movieMiddlewares.validateMovieCreateRequest,
         movieController.createMovie
     );
 
-    // DELETE
+    // DELETE - Delete a movie by ID
     app.delete(
         '/mba/api/v1/movies/:id',
         movieController.deleteMovie
     );
 
-     // READ (single)
+     // READ (single) - Get a single movie by ID
      app.get(
         '/mba/api/v1/movies/:id',
         movieController.getMovie
@@ -38,7 +43,7 @@ const routes = (app) => {
         movieController.updateMovie
     )
 
-    // READ (list)
+    // READ (list) - Get all movies with optional filters
     app.get(
         '/mba/api/v1/movies',
         movieController.getMovies

@@ -16,19 +16,19 @@ const badRequestResponse = {
  * @returns {Promise<void>} Resolves after calling `next()` or sending a 400 response.
  */
 const validateMovieCreateRequest = async (req, res, next) => {
-    // validate the movie name
+    // Validate required field: name
     if(!req.body.name) {
         badRequestResponse.err = "The name of the movie is not present in the request";
         return res.status(400).json(badRequestResponse);
     }
 
-    // validate the movie description
+    // Validate required field: description
     if(!req.body.description) {
         badRequestResponse.err = "The description of the movie is not present in the request";
         return res.status(400).json(badRequestResponse);
     }
 
-    // validate the movie casts: must be a non-empty array
+    // Validate required field: casts (must be a non-empty array)
     if(!req.body.casts || 
        !(req.body.casts instanceof Array) ||
        req.body.casts.length <= 0
@@ -37,23 +37,24 @@ const validateMovieCreateRequest = async (req, res, next) => {
         return res.status(400).json(badRequestResponse);
     }
 
-    // validate the movie trailer url
+    // Validate required field: trailerUrl
     if(!req.body.trailerUrl) {
         badRequestResponse.err = "The trailerUrl of the movie is not present in the request";
         return res.status(400).json(badRequestResponse);
     }
 
-    // validate the release date of the movie
+    // Validate required field: releaseDate
     if(!req.body.releaseDate) {
         badRequestResponse.err = "The releaseDate of the movie is not present in the request";
         return res.status(400).json(badRequestResponse);
     }
 
-    // validate director of the movie
+    // Validate required field: director
     if(!req.body.director) {
         badRequestResponse.err = "The director of the movie is not present in the request";
         return res.status(400).json(badRequestResponse);
     }
+    // All validations passed, proceed to next middleware/controller
     next();
 }
 

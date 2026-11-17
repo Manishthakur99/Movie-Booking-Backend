@@ -4,6 +4,11 @@
 // before sending (`successResponseBody.data = ...`), so concurrent requests
 // share the same object and can overwrite each other's data. Prefer building
 // a fresh response object per request in each controller.
+
+/**
+ * Shared error response template.
+ * @type {{err: Object, data: Object, message: string, success: boolean}}
+ */
 const errorResponseBody = {
     err: {},
     data: {},
@@ -11,6 +16,10 @@ const errorResponseBody = {
     success: false
 }
 
+/**
+ * Shared success response template.
+ * @type {{err: Object, data: Object, message: string, success: boolean}}
+ */
 const successResponseBody = {
     err: {},
     data: {},

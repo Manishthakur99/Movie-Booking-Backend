@@ -12,8 +12,10 @@ const movieService = require('../services/movie.service');
  */
 const createMovie = async (req, res) => {
     try {
+        // Call service to create movie with data from request body
         const response = await movieService.createMovie(req.body);
         if (response.err) {
+            // Return validation error response if service returned an error
             return res.status(response.code).json({
                 success: false,
                 err: response.err,
@@ -21,6 +23,7 @@ const createMovie = async (req, res) => {
                 data: {}
             });
         }
+        // Return success response with 201 Created status
         return res.status(201).json({
             success: true,
             err: {},
@@ -28,6 +31,7 @@ const createMovie = async (req, res) => {
             data: response.movie
         });
     } catch (err) {
+        // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
         return res.status(500).json({
             success: false,
@@ -46,8 +50,10 @@ const createMovie = async (req, res) => {
  */
 const deleteMovie = async (req, res) => {
     try {
+        // Call service to delete movie by id
         const response = await movieService.deleteMovie(req.params.id);
         if (response.err) {
+            // Return error response if service returned an error
             return res.status(response.code).json({
                 success: false,
                 err: response.err,
@@ -55,6 +61,7 @@ const deleteMovie = async (req, res) => {
                 data: {}
             });
         }
+        // Return success response with deleted movie
         return res.status(200).json({
             success: true,
             err: {},
@@ -62,6 +69,7 @@ const deleteMovie = async (req, res) => {
             data: response.movie
         });
     } catch (err) {
+        // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
         return res.status(500).json({
             success: false,
@@ -80,8 +88,10 @@ const deleteMovie = async (req, res) => {
  */
 const getMovie = async (req, res) => {
     try {
+        // Call service to get movie by id
         const response = await movieService.getMovieById(req.params.id);
         if (response.err) {
+            // Return error response if service returned an error
             return res.status(response.code).json({
                 success: false,
                 err: response.err,
@@ -89,6 +99,7 @@ const getMovie = async (req, res) => {
                 data: {}
             });
         }
+        // Return success response with the movie
         return res.status(200).json({
             success: true,
             err: {},
@@ -96,6 +107,7 @@ const getMovie = async (req, res) => {
             data: response.movie
         });
     } catch (err) {
+        // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
         return res.status(500).json({
             success: false,
@@ -114,8 +126,10 @@ const getMovie = async (req, res) => {
  */
 const updateMovie = async (req, res) => {
     try {
+        // Call service to update movie by id with data from request body
         const response = await movieService.updateMovie(req.params.id, req.body);
         if (response.err) {
+            // Return error response if service returned an error
             return res.status(response.code).json({
                 success: false,
                 err: response.err,
@@ -123,6 +137,7 @@ const updateMovie = async (req, res) => {
                 data: {}
             });
         }
+        // Return success response with updated movie
         return res.status(200).json({
             success: true,
             err: {},
@@ -130,6 +145,7 @@ const updateMovie = async (req, res) => {
             data: response.movie
         });
     } catch (err) {
+        // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
         return res.status(500).json({
             success: false,
@@ -138,7 +154,7 @@ const updateMovie = async (req, res) => {
             data: {}
         });
     }
-}
+};
 
 /**
  * Fetches a list of movies.
@@ -148,8 +164,10 @@ const updateMovie = async (req, res) => {
  */
 const getMovies = async (req, res) => {
     try {
+        // Call service to get all movies with optional filters from query params
         const response = await movieService.fetchMovies(req.query);
         if (response.err) {
+            // Return error response if service returned an error
             return res.status(response.code).json({
                 success: false,
                 err: response.err,
@@ -157,6 +175,7 @@ const getMovies = async (req, res) => {
                 data: {}
             });
         }
+        // Return success response with list of movies
         return res.status(200).json({
             success: true,
             err: {},
@@ -164,6 +183,7 @@ const getMovies = async (req, res) => {
             data: response.movies
         });
     } catch (err) {
+        // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
         return res.status(500).json({
             success: false,

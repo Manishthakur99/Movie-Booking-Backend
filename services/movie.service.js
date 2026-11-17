@@ -12,6 +12,7 @@ const Movie = require('../models/movie.model');
  */
 const createMovie = async (data) => {
     try {
+        // Create a new movie document in MongoDB with the provided data
         const movie = await Movie.create(data);
         return { movie };
     } catch (err) {
@@ -31,8 +32,10 @@ const getMovieById = async (id) => {
     if (!mongoose.isValidObjectId(id)) {
         return { err: "Invalid movie id provided", code: 400 };
     }
+    // Query MongoDB for movie by its ObjectId
     const movie = await Movie.findById(id);
     if (!movie) {
+        // Return 404 if movie doesn't exist
         return { err: "No movie found for the corresponding id provided", code: 404 };
     }
     return { movie };
@@ -44,13 +47,17 @@ const getMovieById = async (id) => {
  * @returns {Promise<{movie?: Object, err?: string, code?: number}>} Deleted movie, or an error object.
  */
 const deleteMovie = async (id) => {
+    // Validate that the id is a valid MongoDB ObjectId
     if (!mongoose.isValidObjectId(id)) {
         return { err: "Invalid movie id provided", code: 400 };
     }
+    // Find movie by id and delete it in one operation
     const movie = await Movie.findByIdAndDelete(id);
     if (!movie) {
+        // Return 404 if movie doesn't exist
         return { err: "No movie found for the corresponding id provided", code: 404 };
     }
+    // Return the deleted movie document
     return { movie };
 };
 
@@ -62,6 +69,7 @@ const deleteMovie = async (id) => {
  */
 const updateMovie = async (id, data) => {
     try {
+        // Validate that the id is a valid MongoDB ObjectId
         if (!mongoose.isValidObjectId(id)) {
             return { err: "Invalid movie id provided", code: 400 };
         }
@@ -69,6 +77,7 @@ const updateMovie = async (id, data) => {
         // `runValidators: true` re-runs schema validators on the update payload.
         const movie = await Movie.findByIdAndUpdate(id, data, { new: true, runValidators: true });
         if (!movie) {
+            // Return 404 if movie doesn't exist
             return { err: "No movie found for the corresponding id provided", code: 404 };
         }
         return { movie };
@@ -76,9 +85,11 @@ const updateMovie = async (id, data) => {
         // Flatten Mongoose ValidationError into a per-field error map.
         if (error.name === 'ValidationError') {
             let err = {};
+            // Extract error messages for each invalid field
             Object.keys(error.errors).forEach((key) => {
                 err[key] = error.errors[key].message;
             });
+            // Return 422 Unprocessable Entity for validation errors
             return { err, code: 422 };
         }
         throw error;
@@ -97,9 +108,11 @@ const fetchMovies = async (filter = {}) => {
         if (filter.name) {
             query.name = filter.name;
         }
+        // Execute query with the built filter
         const movies = await Movie.find(query);
         return { movies };
     } catch (err) {
+        // Return 500 Internal Server Error for any unexpected errors
         return { err: err.message, code: 500 };
     }
 }
