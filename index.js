@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 
 const MovieRoutes = require('./routes/movie.routes');
 const theatreRoutes = require('./routes/theatre.routes');
+const authRoutes = require('./routes/auth.routes');
 
 // Load environment variables (PORT, DB_URL) from the .env file
 env.config();
@@ -23,6 +24,7 @@ app.use(bodyParser.json());
 // Register application routes on the app instance
 MovieRoutes(app);
 theatreRoutes(app);
+authRoutes(app);
 
 
 // Start the HTTP server first, then establish the DB connection.
