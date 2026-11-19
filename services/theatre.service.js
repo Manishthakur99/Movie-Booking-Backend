@@ -1,10 +1,5 @@
 const Theatre = require('../models/theatre.model');
-
-// HTTP status codes used when a service needs to signal a specific error.
-const STATUS = {
-    NOT_FOUND: 404,
-    INTERNAL_SERVER_ERROR: 500
-};
+const { STATUS } = require('../utils/constants');
 
 // Service layer convention mirrors movie.service.js:
 // success -> `{ theatre }` / `{ theatres }`, failure -> `{ err, code }`.
@@ -90,8 +85,8 @@ const deleteTheatre = async (id) => {
  */
 const updateTheatre = async (id, data) => {
     try {
-        // `new: true` returns the updated doc; `runValidators: true` re-validates updates.
-        const theatre = await Theatre.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+        // `returnDocument: 'after'` returns the updated doc; `runValidators: true` re-validates updates.
+        const theatre = await Theatre.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
         if (!theatre) {
             // Return error if theatre doesn't exist
             return { err: "No theatre found for the given id", code: STATUS.NOT_FOUND };
@@ -155,14 +150,14 @@ const updateMoviesInTheatres = async (theatreId, movieIds, insert) => {
             theatre = await Theatre.findByIdAndUpdate(
                 {_id: theatreId},
                 {$addToSet: {movies: {$each: movieIds}}},
-                {new: true}
+                { returnDocument: 'after' }
             );
         } else {
             // we need to remove movies
             theatre = await Theatre.findByIdAndUpdate(
                 {_id: theatreId},
                 {$pull: {movies: {$in: movieIds}}},
-                {new: true}
+                { returnDocument: 'after' }
             );
         }
         

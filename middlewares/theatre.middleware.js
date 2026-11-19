@@ -1,4 +1,5 @@
 const { errorResponseBody } = require('../utils/responsebody');
+const { STATUS } = require('../utils/constants');
 
 /**
  * Middleware that runs before POST /mba/api/v1/theatres.
@@ -13,17 +14,17 @@ const validateTheatreCreateRequest = async (req, res, next) => {
     // Validate required field: name
     if(!req.body.name) {
         errorResponseBody.err = "The name of the theatre is not present in the request";
-        return res.status(400).json(errorResponseBody)
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody)
     }
     // Validate required field: pincode
     if(!req.body.pincode) {
         errorResponseBody.err = "The pincode of the theatre is not present in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
     // Validate required field: city
     if(!req.body.city) {
         errorResponseBody.err = "The city of the theatre is not present";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
     // All validations passed, proceed to next middleware/controller
     next();
@@ -42,22 +43,22 @@ const validateUpdateMoviesRequest = async (req, res, next) => {
     // Validate required field: insert (boolean flag for add/remove)
     if(req.body.insert == undefined) {
         errorResponseBody.err = "The insert parameter is missing in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
     // Validate required field: movieIds presence
     if(!req.body.movieIds) {
         errorResponseBody.err = "No movies present in the request to be updated in theatre";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
     // Validate that movieIds is an array
     if(!(req.body.movieIds instanceof Array)) {
         errorResponseBody.err = "Expected array of movies but found something else";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
     // Validate that movieIds array is not empty
     if(req.body.movieIds.length == 0) {
         errorResponseBody.err = "No movies present in the array provided";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
     // All validations passed, proceed to next middleware/controller
     next();

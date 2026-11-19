@@ -1,12 +1,6 @@
 const theatreService = require('../services/theatre.service');
 const { successResponseBody, errorResponseBody } = require('../utils/responsebody');
-
-// Local status codes referenced by the controller handlers below.
-const STATUS = {
-    OK: 200,
-    INTERNAL_SERVER_ERROR: 500,
-    NOT_FOUND: 404
-};
+const { STATUS } = require('../utils/constants');
 
 // NOTE: `successResponseBody` / `errorResponseBody` are shared singleton objects
 // (see utils/responsebody.js). Mutating them here is unsafe under concurrency;
@@ -41,7 +35,7 @@ const create = async (req, res) => {
         }
 
         // Return success response with 201 Created status
-        return res.status(201).json({
+        return res.status(STATUS.CREATED).json({
             success: true,
             err: {},
             message: "Successfully created the theatre",
@@ -50,7 +44,7 @@ const create = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
@@ -131,7 +125,7 @@ const getAllTheatres = async (req, res) => {
             });
         }
         // Return success response with list of theatres
-        return res.status(200).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
             message: "Successfully fetched theatres",
@@ -140,7 +134,7 @@ const getAllTheatres = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
@@ -169,7 +163,7 @@ const updateTheatre = async (req, res) => {
             });
         }
         // Return success response with updated theatre
-        return res.status(200).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
             message: "Successfully updated the theatre",
@@ -178,7 +172,7 @@ const updateTheatre = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
