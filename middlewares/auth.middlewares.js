@@ -7,17 +7,17 @@ const validateSignupRequest = async (req, res, next) => {
 
     if(!req.body.name) {
         errorResponseBody.err = "Name of the user not present in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
 
      if(!req.body.email) {
         errorResponseBody.err = "Email of the user not present in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
 
     if(!req.body.password) {
         errorResponseBody.err = "Password of the user not present in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
 
     next();
@@ -27,12 +27,12 @@ const validateSigninRequest = async (req, res, next) => {
 
     if(!req.body.email) {
         errorResponseBody.err = "Email of the user not present in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
 
     if(!req.body.password) {
         errorResponseBody.err = "Password of the user not present in the request";
-        return res.status(400).json(errorResponseBody);
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
     }
 
     next();

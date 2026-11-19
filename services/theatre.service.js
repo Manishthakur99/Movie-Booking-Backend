@@ -1,10 +1,5 @@
 const Theatre = require('../models/theatre.model');
-
-// HTTP status codes used when a service needs to signal a specific error.
-const STATUS = {
-    NOT_FOUND: 404,
-    INTERNAL_SERVER_ERROR: 500
-};
+const { STATUS } = require('../utils/constants');
 
 // Service layer convention mirrors movie.service.js:
 // success -> `{ theatre }` / `{ theatres }`, failure -> `{ err, code }`.

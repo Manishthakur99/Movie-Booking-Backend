@@ -7,7 +7,7 @@ const createUser = async (data) => {
             if(data.userStatus && data.userStatus != USER_STATUS.approved) {
                 throw {
                     err: "We cannot set any other status for customer", 
-                    code: 400
+                    code: STATUS.BAD_REQUEST
                 };
             }
         }
@@ -35,7 +35,7 @@ const getUserByEmail = async (email) => {
             email: email
         });
         if(!response) {
-            throw {err: "No user found for the given email", code: 404};
+            throw {err: "No user found for the given email", code: STATUS.NOT_FOUND};
         }
         return response;
     } catch (error) {
@@ -48,7 +48,7 @@ const getUserById = async (id) => {
     try {
         const user = await User.findById(id);
         if(!user) {
-            throw {err: "No user found for the given id", code: 404};
+            throw {err: "No user found for the given id", code: STATUS.NOT_FOUND};
         }
         return user;
     } catch (error) {

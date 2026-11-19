@@ -1,4 +1,5 @@
 const movieService = require('../services/movie.service');
+const { STATUS } = require('../utils/constants');
 
 // Controllers translate the service result (`{ err, code }` or `{ movie }`)
 // into a consistent JSON envelope: `{ success, err, message, data }`.
@@ -24,7 +25,7 @@ const createMovie = async (req, res) => {
             });
         }
         // Return success response with 201 Created status
-        return res.status(201).json({
+        return res.status(STATUS.CREATED).json({
             success: true,
             err: {},
             message: "Successfully created the movie",
@@ -33,7 +34,7 @@ const createMovie = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
@@ -62,7 +63,7 @@ const deleteMovie = async (req, res) => {
             });
         }
         // Return success response with deleted movie
-        return res.status(200).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
             message: "Successfully deleted the movie",
@@ -71,7 +72,7 @@ const deleteMovie = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
@@ -100,7 +101,7 @@ const getMovie = async (req, res) => {
             });
         }
         // Return success response with the movie
-        return res.status(200).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
             message: "Successfully fetched the movie",
@@ -109,7 +110,7 @@ const getMovie = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
@@ -138,7 +139,7 @@ const updateMovie = async (req, res) => {
             });
         }
         // Return success response with updated movie
-        return res.status(200).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
             message: "Successfully updated the movie",
@@ -147,7 +148,7 @@ const updateMovie = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",
@@ -176,7 +177,7 @@ const getMovies = async (req, res) => {
             });
         }
         // Return success response with list of movies
-        return res.status(200).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
             message: "Successfully fetched the movies",
@@ -185,7 +186,7 @@ const getMovies = async (req, res) => {
     } catch (err) {
         // Log and return 500 Internal Server Error for unexpected errors
         console.log(err);
-        return res.status(500).json({
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             err: err.message,
             message: "Internal server error",

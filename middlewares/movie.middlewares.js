@@ -1,4 +1,5 @@
 // Shared bad-request template for movie validation failures.
+const { STATUS } = require('../utils/constants');
 const badRequestResponse = {
     success: false,
     err: "",
@@ -19,13 +20,13 @@ const validateMovieCreateRequest = async (req, res, next) => {
     // Validate required field: name
     if(!req.body.name) {
         badRequestResponse.err = "The name of the movie is not present in the request";
-        return res.status(400).json(badRequestResponse);
+        return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: description
     if(!req.body.description) {
         badRequestResponse.err = "The description of the movie is not present in the request";
-        return res.status(400).json(badRequestResponse);
+        return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: casts (must be a non-empty array)
@@ -34,25 +35,25 @@ const validateMovieCreateRequest = async (req, res, next) => {
        req.body.casts.length <= 0
     ) {
         badRequestResponse.err = "The casts of the movie is not present in the request";
-        return res.status(400).json(badRequestResponse);
+        return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: trailerUrl
     if(!req.body.trailerUrl) {
         badRequestResponse.err = "The trailerUrl of the movie is not present in the request";
-        return res.status(400).json(badRequestResponse);
+        return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: releaseDate
     if(!req.body.releaseDate) {
         badRequestResponse.err = "The releaseDate of the movie is not present in the request";
-        return res.status(400).json(badRequestResponse);
+        return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: director
     if(!req.body.director) {
         badRequestResponse.err = "The director of the movie is not present in the request";
-        return res.status(400).json(badRequestResponse);
+        return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
     // All validations passed, proceed to next middleware/controller
     next();
