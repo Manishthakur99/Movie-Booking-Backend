@@ -17,6 +17,8 @@ const routes = (app) => {
     // CREATE - Create a new theatre (requires validation middleware)
     app.post(
         '/mba/api/v1/theatres',
+       authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
         theatreMiddleware.validateTheatreCreateRequest,
         theatreController.create
     );
@@ -25,6 +27,7 @@ const routes = (app) => {
     app.delete(
         '/mba/api/v1/theatres/:id',
         authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
         theatreController.destroy
     );
 
@@ -43,12 +46,16 @@ const routes = (app) => {
     // UPDATE (PUT for full replace, PATCH for partial update)
     app.put(
         '/mba/api/v1/theatres/:id',
-        theatreController.updateTheatre
+       authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
+        theatreController.update
     );
 
     app.patch(
         '/mba/api/v1/theatres/:id',
-        theatreController.updateTheatre
+        authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
+        theatreController.update
     );
 
     // UPDATE - Add or remove movies from a theatre (requires validation middleware)
