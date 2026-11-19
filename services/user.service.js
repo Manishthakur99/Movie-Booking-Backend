@@ -1,5 +1,5 @@
 const User = require('../models/user.model');
-const { USER_ROLE, USER_STATUS } = require('../utils/constants');
+const { USER_ROLE, USER_STATUS, STATUS } = require('../utils/constants');
 
 const createUser = async (data) => {
     try{
@@ -68,14 +68,14 @@ const updateUserRoleOrStatus = async (data, userId) => {
         return response;
     }
     catch(err) {
-        if(error.name == 'ValidationError') {
-            let err = {};
-            Object.keys(error.errors).forEach(key => {
-                err[key] = error.errors[key].message;
+        if(err.name == 'ValidationError') {
+            let errMap = {};
+            Object.keys(err.errors).forEach(key => {
+                errMap[key] = err.errors[key].message;
             });
-            throw {err: err, code: STATUS.BAD_REQUEST};
+            throw {err: errMap, code: STATUS.BAD_REQUEST};
         }
-        throw error;
+        throw err;
     }
 }
 
