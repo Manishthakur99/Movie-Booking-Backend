@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
 const MovieRoutes = require('./routes/movie.routes');
 const theatreRoutes = require('./routes/theatre.routes');
 const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
 
 // Load environment variables (PORT, DB_URL) from the .env file
 env.config();
@@ -25,6 +26,7 @@ app.use(bodyParser.json());
 MovieRoutes(app);
 theatreRoutes(app);
 authRoutes(app);
+userRoutes(app);
 
 // Connect to MongoDB first, then start the HTTP server.
 // This prevents requests from arriving before the DB is ready,
