@@ -4,6 +4,12 @@ const { STATUS } = require('../utils/constants');
 
 const { successResponseBody, errorResponseBody } = require('../utils/responsebody');
 
+/**
+ * Registers a new user.
+ * @param {Request} req - Express request; user payload is in `req.body`.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with status 201 on success or an error status.
+ */
 const signup = async (req, res) => {
     try {
         const response = await userService.createUser(req.body);
@@ -21,6 +27,12 @@ const signup = async (req, res) => {
     }
 }
 
+/**
+ * Authenticates a user and returns a JWT token.
+ * @param {Request} req - Express request; email and password are in `req.body`.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response with user data and token on success or an error status.
+ */
 const signin = async (req, res) => {
     try {
         const user = await userService.getUserByEmail(req.body.email);
@@ -54,6 +66,12 @@ const signin = async (req, res) => {
     }
 }
 
+/**
+ * Resets a user's password after verifying the old password.
+ * @param {Request} req - Express request; `req.user` is the authenticated user id, `req.body.oldPassword` and `req.body.newPassword` are the passwords.
+ * @param {Response} res - Express response used to send the result.
+ * @returns {Promise<Response>} JSON response on success or an error status.
+ */
 const resetPassword = async (req, res) => {
         try{
             const user = await userService.getUserById(req.user);

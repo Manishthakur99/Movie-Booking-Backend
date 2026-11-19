@@ -16,6 +16,8 @@ const routes = (app) => {
     // CREATE - Create a new movie (requires validation middleware)
     app.post(
         '/mba/api/v1/movies', 
+        authMiddlewares.isAuthenticated,
+        authMiddlewares.isAdminOrClient,
         movieMiddlewares.validateMovieCreateRequest,
         movieController.createMovie
     );
@@ -23,6 +25,8 @@ const routes = (app) => {
     // DELETE - Delete a movie by ID
     app.delete(
         '/mba/api/v1/movies/:id',
+        authMiddlewares.isAuthenticated,
+        authMiddlewares.isAdminOrClient,
         movieController.deleteMovie
     );
 
@@ -35,11 +39,15 @@ const routes = (app) => {
      // UPDATE (PUT for full replace, PATCH for partial update)
      app.put(
         '/mba/api/v1/movies/:id',
+       authMiddlewares.isAuthenticated,
+        authMiddlewares.isAdminOrClient,
         movieController.updateMovie
     );
 
     app.patch(
         '/mba/api/v1/movies/:id',
+        authMiddlewares.isAuthenticated,
+        authMiddlewares.isAdminOrClient,
         movieController.updateMovie
     )
 
