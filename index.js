@@ -26,16 +26,21 @@ MovieRoutes(app);
 theatreRoutes(app);
 authRoutes(app);
 
-
-// Start the HTTP server first, then establish the DB connection.
-// This keeps the server responsive even if the DB is temporarily unavailable.
-app.listen(process.env.PORT, async () => {
-  console.log(`Server is running on http://localhost:${process.env.PORT}`);
-
-  try{
+// Connect to MongoDB first, then start the HTTP server.
+// This prevents requests from arriving before the DB is ready,
+// which would cause Mongoose operation buffering and timeouts.
+async function startServer() {
+  try {
     await mongoose.connect(process.env.DB_URL);
     console.log('Connected to MongoDB');
-  }catch(err){
+
+    app.listen(process.env.PORT, () => {
+      console.log(`Server is running on http://localhost:${process.env.PORT}`);
+    });
+  } catch (err) {
     console.error('Error while connecting to MongoDB:', err);
+    process.exit(1);
   }
-});
+}
+
+startServer();

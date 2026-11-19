@@ -23,13 +23,42 @@ const createUser = async (data) => {
             Object.keys(err.errors).forEach((key) => {
                 error[key] = err.errors[key].message;
             });
-            throw {err: err, code: 422};
+            throw {err: error, code: 422};
         }
         throw err;
     }
 }
 
+const getUserByEmail = async (email) => {
+    try {
+        const response = await User.findOne({
+            email: email
+        });
+        if(!response) {
+            throw {err: "No user found for the given email", code: 404};
+        }
+        return response;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
 
-    module.exports = {
-        createUser,
-    };
+const getUserById = async (id) => {
+    try {
+        const user = await User.findById(id);
+        if(!user) {
+            throw {err: "No user found for the given id", code: 404};
+        }
+        return user;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+module.exports = {
+    createUser,
+    getUserByEmail,
+    getUserById
+};
