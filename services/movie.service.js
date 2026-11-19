@@ -73,9 +73,9 @@ const updateMovie = async (id, data) => {
         if (!mongoose.isValidObjectId(id)) {
             return { err: "Invalid movie id provided", code: 400 };
         }
-        // `new: true` returns the updated document instead of the pre-update one;
+        // `returnDocument: 'after'` returns the updated document instead of the pre-update one;
         // `runValidators: true` re-runs schema validators on the update payload.
-        const movie = await Movie.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+        const movie = await Movie.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
         if (!movie) {
             // Return 404 if movie doesn't exist
             return { err: "No movie found for the corresponding id provided", code: 404 };

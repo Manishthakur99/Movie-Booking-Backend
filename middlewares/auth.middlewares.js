@@ -59,7 +59,7 @@ const isAuthenticated = async (req, res, next) => {
             errorResponseBody.err = error.message;
             return res.status(STATUS.UNAUTHORISED).json(errorResponseBody);
         }
-        
+
             if(err.code == STATUS.NOT_FOUND) {
             errorResponseBody.err = "User doesn't exist";
             return res.status(err.code).json(errorResponseBody);
@@ -69,9 +69,27 @@ const isAuthenticated = async (req, res, next) => {
     }
 }
 
+const validateResetPasswordRequest = (req, res, next) => {
+   
+    if(!req.body.oldPassword) {
+        errorResponseBody.err = 'Missing the old password in the request';
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
+    }
+
+    
+    if(!req.body.newPassword) {
+        errorResponseBody.err = 'Missing the new password in the request';
+        return res.status(STATUS.BAD_REQUEST).json(errorResponseBody);
+    }
+
+    next();
+}
+
+
 
 module.exports = {
     validateSignupRequest,
     validateSigninRequest,
-    isAuthenticated
+    isAuthenticated,
+    validateResetPasswordRequest
 }

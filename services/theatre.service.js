@@ -90,8 +90,8 @@ const deleteTheatre = async (id) => {
  */
 const updateTheatre = async (id, data) => {
     try {
-        // `new: true` returns the updated doc; `runValidators: true` re-validates updates.
-        const theatre = await Theatre.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+        // `returnDocument: 'after'` returns the updated doc; `runValidators: true` re-validates updates.
+        const theatre = await Theatre.findByIdAndUpdate(id, data, { returnDocument: 'after', runValidators: true });
         if (!theatre) {
             // Return error if theatre doesn't exist
             return { err: "No theatre found for the given id", code: STATUS.NOT_FOUND };
@@ -155,14 +155,14 @@ const updateMoviesInTheatres = async (theatreId, movieIds, insert) => {
             theatre = await Theatre.findByIdAndUpdate(
                 {_id: theatreId},
                 {$addToSet: {movies: {$each: movieIds}}},
-                {new: true}
+                { returnDocument: 'after' }
             );
         } else {
             // we need to remove movies
             theatre = await Theatre.findByIdAndUpdate(
                 {_id: theatreId},
                 {$pull: {movies: {$in: movieIds}}},
-                {new: true}
+                { returnDocument: 'after' }
             );
         }
         
