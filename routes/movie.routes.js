@@ -5,6 +5,7 @@
 
 const movieController = require('../controllers/movie.controllers');
 const movieMiddlewares = require('../middlewares/movie.middlewares');
+const authMiddlewares = require('../middlewares/auth.middlewares');
 
 /**
  * Registers all movie endpoints on the Express app.

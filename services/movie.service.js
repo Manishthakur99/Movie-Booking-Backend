@@ -16,10 +16,19 @@ const createMovie = async (data) => {
         // Create a new movie document in MongoDB with the provided data
         const movie = await Movie.create(data);
         return { movie };
-    } catch (err) {
-        // NOTE: unlike updateMovie, this returns a generic 400 rather than a
-        // per-field 422 ValidationError — kept as-is, but worth aligning later.
-        return { err: err.message, code: STATUS.BAD_REQUEST };
+    } catch (error) {
+        // Flatten Mongoose ValidationError into a per-field error map.
+        if (error.name === 'ValidationError') {
+            let err = {};
+            // Extract error messages for each invalid field
+            Object.keys(error.errors).forEach((key) => {
+                err[key] = error.errors[key].message;
+            });
+            // Return 422 Unprocessable Entity for validation errors
+            return { err, code: STATUS.UNPROCESSABLE_ENTITY };
+        }
+        // Return 400 for other errors
+        return { err: error.message, code: STATUS.BAD_REQUEST };
     }
 };
 
