@@ -13,6 +13,7 @@ const theatreRoutes = require('./routes/theatre.routes');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const bookingRoutes = require('./routes/booking.routes');
+const showRoutes = require('./routes/show.routes');
 
 // Load environment variables (PORT, DB_URL) from the .env file
 env.config();
@@ -29,6 +30,7 @@ theatreRoutes(app);
 authRoutes(app);
 userRoutes(app);
 bookingRoutes(app);
+showRoutes(app);
 
 // Connect to MongoDB first, then start the HTTP server.
 // This prevents requests from arriving before the DB is ready,
