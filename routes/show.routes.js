@@ -18,10 +18,20 @@ const routes = (app) => {
         showController.getShows
     );
 
-    // READ (single) - Get a single show by id
-    app.get(
+    // DELETE - Delete a show by id
+    app.delete(
         '/mba/api/v1/shows/:id',
-        showController.getShow
+        authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
+        showController.destroy
+    );
+
+     app.patch(
+        '/mba/api/v1/shows/:id',
+        authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
+        
+        showController.update
     );
 }
 
