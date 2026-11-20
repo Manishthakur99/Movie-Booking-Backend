@@ -30,7 +30,7 @@ const routes = (app) => {
         '/mba/api/v1/shows/:id',
         authMiddleware.isAuthenticated,
         authMiddleware.isAdminOrClient,
-        
+        showMiddleware.validateShowUpdateRequest,
         showController.update
     );
 }
