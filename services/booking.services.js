@@ -48,7 +48,27 @@ const updateBooking = async (data, bookingId) => {
     }
 }
 
+const getBookings = async (data) => {
+    try {
+        const response = await Booking.find(data);
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getAllBookings = async () => {
+    try {
+        const response = await Booking.find();
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = { 
     createBooking,
-    updateBooking
+    updateBooking,
+    getBookings,
+    getAllBookings
 }
