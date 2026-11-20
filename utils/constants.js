@@ -32,8 +32,17 @@ const STATUS = {
     PAYMENT_REQUIRED: 402
 };
 
+const BOOKING_STATUS = {
+    cancelled: "CANCELLED",
+    successfull: "SUCCESSFULL",
+    processing: "IN_PROCESS",
+    expired: "EXPIRED"
+}
+
+
 module.exports = {
     USER_ROLE,
     USER_STATUS,
     STATUS,
+    BOOKING_STATUS
 };
