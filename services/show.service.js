@@ -35,45 +35,30 @@ const createShow = async (data) => {
     }
 }
 
-/**
- * Fetches a single show by id.
- * @param {string} id - Show ObjectId as a string.
- * @returns {Promise<Object>} Found show document, or throws `{ err, code: 404 }` if not found.
- */
-const getShowById = async (id) => {
-    if (!mongoose.isValidObjectId(id)) {
-        return { err: "Invalid show id provided", code: STATUS.BAD_REQUEST };
-    }
-    const show = await Show.findById(id);
-    if (!show) {
-        throw { err: "No show found for the given id", code: STATUS.NOT_FOUND };
-    }
-    return show;
-};
-
-/**
- * Fetches shows matching optional filters.
- * @param {Object} [filter={}] - Query filters (currently supports `theatreId`, `movieId`).
- * @returns {Promise<{shows?: Object[], err?: string, code?: number}>} List of shows, or an error object.
- */
-const fetchShows = async (filter = {}) => {
+const getShows = async (data) => {
     try {
-        const query = {};
-        if (filter.theatreId) {
-            query.theatreId = filter.theatreId;
+        let filter = {};
+        if(data.theatreId) {
+            filter.theatreId = data.theatreId;
+        } 
+        if(data.movieId) {
+            filter.movieId = data.movieId;
         }
-        if (filter.movieId) {
-            query.movieId = filter.movieId;
+        const response = await Show.find(filter);
+        if(!response) {
+            throw {
+                err: 'No shows found',
+                code: STATUS.NOT_FOUND
+            }
         }
-        const shows = await Show.find(query);
-        return { shows };
-    } catch (err) {
-        return { err: err.message, code: STATUS.INTERNAL_SERVER_ERROR };
+        return response;
+    } catch (error) {
+        throw error;
     }
 }
 
 module.exports = {
     createShow,
-    getShowById,
-    fetchShows
+    getShows,
+    
 }

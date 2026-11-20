@@ -23,9 +23,9 @@ const create = async (req, res) => {
  */
 const getShows = async (req, res) => {
     try {
-        const response = await showService.fetchShows(req.query);
-        successResponseBody.message = "Successfully fetched the shows";
-        successResponseBody.data = response.shows;
+        const response = await showService.getShows(req.query);
+        successResponseBody.message = "Successfully fetched the movie shows";
+        successResponseBody.data = response;
         return res.status(STATUS.OK).json(successResponseBody);
     } catch (error) {
         if(error.err) {
@@ -33,7 +33,7 @@ const getShows = async (req, res) => {
             return res.status(error.code).json(errorResponseBody);
         }
         errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR);
     }
 }
 
