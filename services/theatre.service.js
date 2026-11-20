@@ -23,7 +23,7 @@ const createTheatre = async (data) => {
                 err[key] = error.errors[key].message;
             });
             // Return 422 Unprocessable Entity for validation errors
-            return { err, code: 422 };
+            return { err, code: STATUS.UNPROCESSABLE_ENTITY };
         }
         console.log(error);
         throw error;
@@ -101,7 +101,7 @@ const updateTheatre = async (id, data) => {
                 err[key] = error.errors[key].message;
             });
             // Return 422 Unprocessable Entity for validation errors
-            return { err, code: 422 };
+            return { err, code: STATUS.UNPROCESSABLE_ENTITY };
         }
         throw error;
     }

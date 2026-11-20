@@ -3,6 +3,14 @@ const { USER_ROLE, STATUS } = require('../utils/constants');
 const jwt = require('jsonwebtoken');
 const userService = require('../services/user.service');
 
+/**
+ * Middleware that validates the signup request body.
+ * Ensures `name`, `email`, and `password` are present.
+ * @param {Request} req - Express request; user payload is in `req.body`.
+ * @param {Response} res - Express response used to send a 400 error on invalid input.
+ * @param {Function} next - Passes control to the next handler when validation succeeds.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 400 response.
+ */
 const validateSignupRequest = async (req, res, next) => {
 
     if(!req.body.name) {
@@ -23,6 +31,14 @@ const validateSignupRequest = async (req, res, next) => {
     next();
 }
 
+/**
+ * Middleware that validates the signin request body.
+ * Ensures `email` and `password` are present.
+ * @param {Request} req - Express request; credentials are in `req.body`.
+ * @param {Response} res - Express response used to send a 400 error on invalid input.
+ * @param {Function} next - Passes control to the next handler when validation succeeds.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 400 response.
+ */
 const validateSigninRequest = async (req, res, next) => {
 
     if(!req.body.email) {
@@ -38,6 +54,14 @@ const validateSigninRequest = async (req, res, next) => {
     next();
 }
 
+/**
+ * Middleware that authenticates a user via JWT token.
+ * Verifies the `x-access-token` header and attaches the user id to `req.user`.
+ * @param {Request} req - Express request; JWT token is in `x-access-token` header.
+ * @param {Response} res - Express response used to send 401/403/500 on auth failure.
+ * @param {Function} next - Passes control to the next handler when authentication succeeds.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending an error response.
+ */
 const isAuthenticated = async (req, res, next) => {
     try{
         const token = req.headers["x-access-token"];
@@ -69,6 +93,14 @@ const isAuthenticated = async (req, res, next) => {
     }
 }
 
+/**
+ * Middleware that validates the reset password request body.
+ * Ensures `oldPassword` and `newPassword` are present.
+ * @param {Request} req - Express request; passwords are in `req.body`.
+ * @param {Response} res - Express response used to send a 400 error on invalid input.
+ * @param {Function} next - Passes control to the next handler when validation succeeds.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 400 response.
+ */
 const validateResetPasswordRequest = (req, res, next) => {
    
     if(!req.body.oldPassword) {
@@ -85,6 +117,14 @@ const validateResetPasswordRequest = (req, res, next) => {
     next();
 }
 
+/**
+ * Middleware that checks if the authenticated user has the ADMIN role.
+ * Requires `isAuthenticated` to have run before this middleware.
+ * @param {Request} req - Express request; `req.user` is set by `isAuthenticated`.
+ * @param {Response} res - Express response used to send 401 if user is not an admin.
+ * @param {Function} next - Passes control to the next handler when user is an admin.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 401 response.
+ */
 const isAdmin = async (req, res, next) => {
     console.log(req.user);
     const user = await userService.getUserById(req.user);
@@ -95,6 +135,14 @@ const isAdmin = async (req, res, next) => {
     next();
 }
 
+/**
+ * Middleware that checks if the authenticated user has the CLIENT role.
+ * Requires `isAuthenticated` to have run before this middleware.
+ * @param {Request} req - Express request; `req.user` is set by `isAuthenticated`.
+ * @param {Response} res - Express response used to send 401 if user is not a client.
+ * @param {Function} next - Passes control to the next handler when user is a client.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 401 response.
+ */
 const isClient = async (req, res, next) => {
     const user = await userService.getUserById(req.user);
     if(user.userRole != USER_ROLE.client) {
@@ -104,6 +152,14 @@ const isClient = async (req, res, next) => {
     next();
 }
 
+/**
+ * Middleware that checks if the authenticated user has either ADMIN or CLIENT role.
+ * Requires `isAuthenticated` to have run before this middleware.
+ * @param {Request} req - Express request; `req.user` is set by `isAuthenticated`.
+ * @param {Response} res - Express response used to send 401 if user is neither admin nor client.
+ * @param {Function} next - Passes control to the next handler when user is admin or client.
+ * @returns {Promise<void>} Resolves after calling `next()` or sending a 401 response.
+ */
 const isAdminOrClient = async (req, res, next) => {
     const user = await userService.getUserById(req.user);
     if(user.userRole != USER_ROLE.admin && user.userRole != USER_ROLE.client) {
