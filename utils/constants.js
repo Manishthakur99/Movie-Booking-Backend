@@ -17,6 +17,16 @@ const USER_ROLE = {
 };
 
 /**
+ * Booking status constants.
+ */
+const BOOKING_STATUS = {
+    processing: "PROCESSING",
+    cancelled: "CANCELLED",
+    successfull: "SUCCESSFULL",
+    expired: "EXPIRED"
+};
+
+/**
  * HTTP status code constants used across the application.
  */
 const STATUS = {
@@ -31,13 +41,6 @@ const STATUS = {
     GONE: 410,
     PAYMENT_REQUIRED: 402
 };
-
-const BOOKING_STATUS = {
-    cancelled: "CANCELLED",
-    successfull: "SUCCESSFULL",
-    processing: "IN_PROCESS",
-    expired: "EXPIRED"
-}
 
 const PAYMENT_STATUS = {
     failed: "FAILED",
