@@ -1,3 +1,11 @@
+/**
+ * Theatre Controller
+ * 
+ * Handles theatre operations: CRUD, movie management, movie association checks.
+ * Sends email notifications on create, update, and movie list changes.
+ * All responses follow the standard envelope: { success, err, message, data }
+ */
+
 const theatreService = require('../services/theatre.service');
 const sendMail = require('../services/email.service');
 const { STATUS } = require('../utils/constants');

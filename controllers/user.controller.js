@@ -1,11 +1,21 @@
+/**
+ * User Admin Controller
+ * 
+ * Handles admin-only user management operations.
+ * All responses follow the standard envelope: { success, err, message, data }
+ */
+
 const userService = require('../services/user.service');
 const { STATUS } = require('../utils/constants');
 
 /**
- * Updates a user's role or status by id.
- * @param {Request} req - Express request; `req.params.id` is the user id, `req.body` holds the fields to update.
- * @param {Response} res - Express response used to send the result.
- * @returns {Promise<Response>} JSON response on success or an error status.
+ * Updates a user's role and/or status by ID (admin only).
+ * @param {Request} req - Express request; `req.params.id` is the user id.
+ *   Body: { userRole?, userStatus? } - at least one required
+ *   userRole: CUSTOMER | ADMIN | CLIENT
+ *   userStatus: APPROVED | PENDING | REJECTED
+ * @param {Response} res - Express response.
+ * @returns {Promise<Response>} JSON response with 200 on success or error status.
  */
 const update = async (req, res) => {
     try {
@@ -18,7 +28,7 @@ const update = async (req, res) => {
             data: response
         });
     } catch (error) {
-        if(error.err) {
+        if (error.err) {
             return res.status(error.code).json({
                 success: false,
                 err: error.err,
@@ -33,8 +43,8 @@ const update = async (req, res) => {
             data: {}
         });
     }
-}
+};
 
 module.exports = {
     update
-}
+};

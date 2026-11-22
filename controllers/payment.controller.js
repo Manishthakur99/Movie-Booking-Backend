@@ -1,3 +1,15 @@
+/**
+ * Payment Controller
+ * 
+ * Handles payment processing for bookings.
+ * Single endpoint processes payment synchronously with business logic:
+ * - 5-minute booking expiry (auto-cancels stale bookings)
+ * - Payment amount validation
+ * - Seat count reduction on success
+ * - Email notification on successful booking
+ * All responses follow the standard envelope: { success, err, message, data }
+ */
+
 const paymentService = require('../services/payment.service');
 const sendMail = require('../services/email.service');
 const User = require('../models/user.model');
@@ -7,16 +19,20 @@ const { STATUS, BOOKING_STATUS } = require('../utils/constants');
 
 /**
  * Processes payment for a booking.
- * Handles 5-minute expiry, payment validation, seat reduction, and sends confirmation email.
- * @param {Request} req - Express request; bookingId and amount in req.body, user in req.user.
+ * Handles complete payment flow: validation, expiry check, seat reduction, email notification.
+ * @param {Request} req - Express request; `req.user` is authenticated user id.
+ *   Body: { bookingId, amount }
  * @param {Response} res - Express response.
- * @returns {Promise<Response>} JSON response with booking details on success.
+ * @returns {Promise<Response>} JSON response with updated booking on success.
+ *   - 410 GONE: Booking expired (>5 min)
+ *   - 402 PAYMENT_REQUIRED: Payment failed/booking cancelled
+ *   - 200 OK: Booking completed successfully
  */
 const createPayment = async (req, res) => {
     try {
         const response = await paymentService.createPayment(req.body);
         
-        // Handle expired booking
+        // Handle expired booking (5-minute window exceeded)
         if (response.status === BOOKING_STATUS.expired) {
             return res.status(STATUS.GONE).json({
                 success: false,
@@ -72,9 +88,9 @@ const createPayment = async (req, res) => {
 
 /**
  * Gets payment details by payment ID.
- * @param {Request} req - Express request; payment ID in req.params.id.
+ * @param {Request} req - Express request; payment ID in `req.params.id`.
  * @param {Response} res - Express response.
- * @returns {Promise<Response>} JSON response with payment details.
+ * @returns {Promise<Response>} JSON response with payment and populated booking.
  */
 const getPaymentDetailsById = async (req, res) => {
     try {
@@ -104,8 +120,9 @@ const getPaymentDetailsById = async (req, res) => {
 };
 
 /**
- * Gets all payments (admin gets all, user gets own).
- * @param {Request} req - Express request; user in req.user.
+ * Gets all payments based on user role.
+ * Admin sees all payments; regular users see only their own.
+ * @param {Request} req - Express request; `req.user` is authenticated user id.
  * @param {Response} res - Express response.
  * @returns {Promise<Response>} JSON response with payments list.
  */

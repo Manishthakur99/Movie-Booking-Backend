@@ -1,3 +1,11 @@
+/**
+ * Movie Validation Middlewares
+ * 
+ * Validates movie creation requests before they reach the controller.
+ * Performs lightweight presence checks; deeper schema-level validation
+ * (minLength, required, enum) is handled by Mongoose.
+ */
+
 // Shared bad-request template for movie validation failures.
 const { STATUS } = require('../utils/constants');
 const badRequestResponse = {
@@ -9,8 +17,14 @@ const badRequestResponse = {
 
 /**
  * Middleware that runs before POST /mba/api/v1/movies.
- * Performs lightweight presence checks on the request body; deeper
- * schema-level validation (minLength, required) is left to Mongoose.
+ * Validates required fields for movie creation:
+ * - name (string, min 2 chars)
+ * - description (string, min 5 chars)
+ * - casts (non-empty array of strings)
+ * - trailerUrl (string, required)
+ * - releaseDate (string, required)
+ * - director (string, required)
+ * Note: language, releaseStatus, poster have defaults in schema
  * @param {Request} req - Express request; movie payload is in `req.body`.
  * @param {Response} res - Express response used to send a 400 error on invalid input.
  * @param {Function} next - Passes control to the next handler when validation succeeds.
@@ -18,19 +32,19 @@ const badRequestResponse = {
  */
 const validateMovieCreateRequest = async (req, res, next) => {
     // Validate required field: name
-    if(!req.body.name) {
+    if (!req.body.name) {
         badRequestResponse.err = "The name of the movie is not present in the request";
         return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: description
-    if(!req.body.description) {
+    if (!req.body.description) {
         badRequestResponse.err = "The description of the movie is not present in the request";
         return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: casts (must be a non-empty array)
-    if(!req.body.casts || 
+    if (!req.body.casts || 
        !(req.body.casts instanceof Array) ||
        req.body.casts.length <= 0
     ) {
@@ -39,26 +53,26 @@ const validateMovieCreateRequest = async (req, res, next) => {
     }
 
     // Validate required field: trailerUrl
-    if(!req.body.trailerUrl) {
+    if (!req.body.trailerUrl) {
         badRequestResponse.err = "The trailerUrl of the movie is not present in the request";
         return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: releaseDate
-    if(!req.body.releaseDate) {
+    if (!req.body.releaseDate) {
         badRequestResponse.err = "The releaseDate of the movie is not present in the request";
         return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
 
     // Validate required field: director
-    if(!req.body.director) {
+    if (!req.body.director) {
         badRequestResponse.err = "The director of the movie is not present in the request";
         return res.status(STATUS.BAD_REQUEST).json(badRequestResponse);
     }
     // All validations passed, proceed to next middleware/controller
     next();
-}
+};
 
 module.exports = {
     validateMovieCreateRequest
-}
+};
