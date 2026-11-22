@@ -48,19 +48,21 @@ const routes = (app) => {
         '/mba/api/v1/theatres/:id',
        authMiddleware.isAuthenticated,
         authMiddleware.isAdminOrClient,
-        theatreController.update
+        theatreController.updateTheatre
     );
 
     app.patch(
         '/mba/api/v1/theatres/:id',
         authMiddleware.isAuthenticated,
         authMiddleware.isAdminOrClient,
-        theatreController.update
+        theatreController.updateTheatre
     );
 
     // UPDATE - Add or remove movies from a theatre (requires validation middleware)
     app.patch(
         '/mba/api/v1/theatres/:id/movies',
+        authMiddleware.isAuthenticated,
+        authMiddleware.isAdminOrClient,
         theatreMiddleware.validateUpdateMoviesRequest,
         theatreController.updateMovies
     );

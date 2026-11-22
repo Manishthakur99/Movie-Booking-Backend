@@ -9,34 +9,26 @@ const paymentMiddleware = require('../middlewares/payment.middlewares');
  * @returns {void}
  */
 const routes = (app) => {
-    // POST - Initiate payment for a booking (requires auth + validation)
+    // POST - Process payment for a booking (requires auth + validation)
     app.post(
         '/mba/api/v1/payments',
         authMiddleware.isAuthenticated,
         paymentMiddleware.validateInitiatePaymentRequest,
-        paymentController.initiatePayment
+        paymentController.createPayment
     );
 
-    // GET - Get payment status by payment ID (requires auth)
+    // GET - Get payment details by payment ID (requires auth)
     app.get(
         '/mba/api/v1/payments/:id',
         authMiddleware.isAuthenticated,
-        paymentController.getPaymentStatus
+        paymentController.getPaymentDetailsById
     );
 
-    // GET - Get all payments for a booking (requires auth)
+    // GET - Get all payments (admin gets all, user gets own)
     app.get(
-        '/mba/api/v1/payments/booking/:bookingId',
+        '/mba/api/v1/payments',
         authMiddleware.isAuthenticated,
-        paymentController.getPaymentsByBooking
-    );
-
-    // POST - Payment gateway callback (simulated for testing)
-    // In production, this would be a webhook with signature verification
-    app.post(
-        '/mba/api/v1/payments/callback',
-        paymentMiddleware.validatePaymentCallbackRequest,
-        paymentController.paymentCallback
+        paymentController.getAllPayments
     );
 };
 

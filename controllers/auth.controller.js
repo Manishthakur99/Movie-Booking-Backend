@@ -2,8 +2,6 @@ const userService = require('../services/user.service');
 const jwt = require('jsonwebtoken');
 const { STATUS } = require('../utils/constants');
 
-const { successResponseBody, errorResponseBody } = require('../utils/responsebody');
-
 /**
  * Registers a new user.
  * @param {Request} req - Express request; user payload is in `req.body`.
@@ -13,17 +11,28 @@ const { successResponseBody, errorResponseBody } = require('../utils/responsebod
 const signup = async (req, res) => {
     try {
         const response = await userService.createUser(req.body);
-        successResponseBody.data = response;
-        successResponseBody.message = 'User created successfully';
-        return res.status(STATUS.CREATED).json(successResponseBody);
+        return res.status(STATUS.CREATED).json({
+            success: true,
+            err: {},
+            message: 'User created successfully',
+            data: response
+        });
     }
     catch (error) {
         if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: 'Failed to create user',
+                data: {}
+            });
         }
-        errorResponseBody.error = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: 'Internal server error',
+            data: {}
+        });
     }
 }
 
@@ -47,22 +56,33 @@ const signin = async (req, res) => {
             { expiresIn: '1d' }
         );
         
-        successResponseBody.message = "Successfully logged in";
-        successResponseBody.data = {
-            email: user.email,
-            role: user.userRole,
-            status: user.userStatus,
-            token: token
-        }; 
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully logged in",
+            data: {
+                email: user.email,
+                role: user.userRole,
+                status: user.userStatus,
+                token: token
+            }
+        });
 
     } catch (error) {
         if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: 'Failed to sign in',
+                data: {}
+            });
         }
-         errorResponseBody.err = error;
-         return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: 'Internal server error',
+            data: {}
+        });
     }
 }
 
@@ -81,18 +101,29 @@ const resetPassword = async (req, res) => {
         }
         user.password = req.body.newPassword;
         await user.save();
-        successResponseBody.data = user;
-        successResponseBody.message = 'Successfully updated the password for the given user';
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: 'Successfully updated the password for the given user',
+            data: user
+        });
 
         }
         catch(err) {
             if(err.err) {
-            errorResponseBody.err = err.err;
-            return res.status(err.code).json(errorResponseBody);
+            return res.status(err.code).json({
+                success: false,
+                err: err.err,
+                message: 'Failed to reset password',
+                data: {}
+            });
         }
-            errorResponseBody.err = err;
-           return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+           return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: err.message,
+            message: 'Internal server error',
+            data: {}
+        });
         }
 }
 

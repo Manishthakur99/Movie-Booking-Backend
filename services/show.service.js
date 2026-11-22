@@ -100,9 +100,25 @@ const updateShow = async (id, data) => {
     }
 }
 
+const getShowByTheatreMovieTiming = async (theatreId, movieId, timing) => {
+    try {
+        const show = await Show.findOne({ theatreId, movieId, timing });
+        if (!show) {
+            throw {
+                err: 'No show found for the given theatre, movie, and timing',
+                code: STATUS.NOT_FOUND
+            };
+        }
+        return show;
+    } catch (error) {
+        throw error;
+    }
+};
+
 module.exports = {
     createShow,
     getShows,
     deleteShow,
-    updateShow
-}
+    updateShow,
+    getShowByTheatreMovieTiming
+};

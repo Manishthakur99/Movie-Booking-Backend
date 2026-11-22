@@ -70,7 +70,10 @@ const validatePaymentCallbackRequest = (req, res, next) => {
     next();
 };
 
+const verifyPaymentCreateRequest = validateInitiatePaymentRequest;
+
 module.exports = {
     validateInitiatePaymentRequest,
-    validatePaymentCallbackRequest
+    validatePaymentCallbackRequest,
+    verifyPaymentCreateRequest
 };

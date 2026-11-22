@@ -1,14 +1,26 @@
 const Booking = require('../models/booking.model');
-
+const Show = require('../models/show.model');
 
 const { STATUS } = require('../utils/constants');
 
 
 const createBooking = async (data) => {
     try {
-       
+        const show = await Show.findOne({
+            movieId: data.movieId, 
+            theatreId: data.theatreId, 
+            timing: data.timing
+        });
+        
+        if (!show) {
+            throw {
+                err: 'Show not found for the given movie, theatre, and timing',
+                code: STATUS.NOT_FOUND
+            };
+        }
+        
+        data.totalCost = data.noOfSeats * show.price;
         const response = await Booking.create(data);
-       
         return response;
     } catch (error) {
         console.log(error);
@@ -75,7 +87,7 @@ const getBookingById = async (id, userId) => {
                 code: STATUS.NOT_FOUND
             }
         }
-        if(response.userId != userId) {
+        if(response.userId.toString() !== userId) {
             throw {
                 err: 'Not able to access the booking',
                 code: STATUS.UNAUTHORISED
