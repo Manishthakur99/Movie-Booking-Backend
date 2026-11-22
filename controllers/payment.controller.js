@@ -1,60 +1,69 @@
 const paymentService = require('../services/payment.service');
-const { STATUS } = require('../utils/constants');
+const sendMail = require('../services/email.service');
+const User = require('../models/user.model');
+const Movie = require('../models/movie.model');
+const Theatre = require('../models/theatre.model');
+const { STATUS, BOOKING_STATUS } = require('../utils/constants');
 
 /**
- * Initiates a payment for a booking.
+ * Processes payment for a booking.
+ * Handles 5-minute expiry, payment validation, seat reduction, and sends confirmation email.
  * @param {Request} req - Express request; bookingId and amount in req.body, user in req.user.
  * @param {Response} res - Express response.
- * @returns {Promise<Response>} JSON response with payment details.
+ * @returns {Promise<Response>} JSON response with booking details on success.
  */
-const initiatePayment = async (req, res) => {
+const createPayment = async (req, res) => {
     try {
-        const { bookingId, amount } = req.body;
-        const userId = req.user;
-
-        // Verify booking belongs to user
-        const Booking = require('../models/booking.model');
-        const booking = await Booking.findById(bookingId);
-        if (!booking) {
-            return res.status(STATUS.NOT_FOUND).json({
+        const response = await paymentService.createPayment(req.body);
+        
+        // Handle expired booking
+        if (response.status === BOOKING_STATUS.expired) {
+            return res.status(STATUS.GONE).json({
                 success: false,
-                err: 'Booking not found',
-                message: 'Booking not found',
-                data: {}
+                err: 'The payment took more than 5 minutes to get processed, hence your booking got expired, please try again',
+                data: response
+            });
+        }
+        
+        // Handle cancelled/failed payment
+        if (response.status === BOOKING_STATUS.cancelled) {
+            return res.status(STATUS.PAYMENT_REQUIRED).json({
+                success: false,
+                err: 'The payment failed due to some reason, booking was not successful, please try again',
+                data: response
             });
         }
 
-        if (booking.userId.toString() !== userId) {
-            return res.status(STATUS.UNAUTHORISED).json({
-                success: false,
-                err: 'Unauthorized to pay for this booking',
-                message: 'Unauthorized',
-                data: {}
-            });
-        }
+        // Successful booking - send email notification
+        const user = await User.findById(response.userId);
+        const movie = await Movie.findById(response.movieId);
+        const theatre = await Theatre.findById(response.theatreId);
+        
+        sendMail(
+            'Your booking is Successful', 
+            response.userId,
+            `Your booking for ${movie.name} in ${theatre.name} for ${response.noOfSeats} seats on ${response.timing} is successful. Your booking id is ${response._id}`
+        );
 
-        const response = await paymentService.createPayment({ bookingId, amount });
-
-        if (response.err) {
-            return res.status(response.code).json({
-                success: false,
-                err: response.err,
-                message: 'Failed to initiate payment',
-                data: {}
-            });
-        }
-
-        return res.status(STATUS.CREATED).json({
+        return res.status(STATUS.OK).json({
             success: true,
             err: {},
-            message: 'Payment initiated successfully',
-            data: response.payment
+            message: 'Booking completed successfully',
+            data: response
         });
-    } catch (err) {
-        console.error('Error initiating payment:', err);
+    } catch (error) {
+        if (error.err) {
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: 'Failed to process payment',
+                data: {}
+            });
+        }
+        console.error('Error processing payment:', error);
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            err: err.message,
+            err: error.message,
             message: 'Internal server error',
             data: {}
         });
@@ -62,45 +71,32 @@ const initiatePayment = async (req, res) => {
 };
 
 /**
- * Gets payment status by payment ID.
+ * Gets payment details by payment ID.
  * @param {Request} req - Express request; payment ID in req.params.id.
  * @param {Response} res - Express response.
  * @returns {Promise<Response>} JSON response with payment details.
  */
-const getPaymentStatus = async (req, res) => {
+const getPaymentDetailsById = async (req, res) => {
     try {
         const response = await paymentService.getPaymentById(req.params.id);
-
-        if (response.err) {
-            return res.status(response.code).json({
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: 'Successfully fetched the booking and payment details',
+            data: response
+        });
+    } catch (error) {
+        if (error.err) {
+            return res.status(error.code).json({
                 success: false,
-                err: response.err,
+                err: error.err,
                 message: 'Failed to fetch payment',
                 data: {}
             });
         }
-
-        // Verify user owns the booking
-        if (response.payment.booking.userId.toString() !== req.user) {
-            return res.status(STATUS.UNAUTHORISED).json({
-                success: false,
-                err: 'Unauthorized to view this payment',
-                message: 'Unauthorized',
-                data: {}
-            });
-        }
-
-        return res.status(STATUS.OK).json({
-            success: true,
-            err: {},
-            message: 'Payment fetched successfully',
-            data: response.payment
-        });
-    } catch (err) {
-        console.error('Error fetching payment:', err);
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            err: err.message,
+            err: error.message,
             message: 'Internal server error',
             data: {}
         });
@@ -108,94 +104,24 @@ const getPaymentStatus = async (req, res) => {
 };
 
 /**
- * Gets all payments for a booking.
- * @param {Request} req - Express request; booking ID in req.params.bookingId.
+ * Gets all payments (admin gets all, user gets own).
+ * @param {Request} req - Express request; user in req.user.
  * @param {Response} res - Express response.
  * @returns {Promise<Response>} JSON response with payments list.
  */
-const getPaymentsByBooking = async (req, res) => {
+const getAllPayments = async (req, res) => {
     try {
-        const response = await paymentService.getPaymentsByBooking(req.params.bookingId);
-
-        if (response.err) {
-            return res.status(response.code).json({
-                success: false,
-                err: response.err,
-                message: 'Failed to fetch payments',
-                data: {}
-            });
-        }
-
-        // Verify user owns the booking
-        const Booking = require('../models/booking.model');
-        const booking = await Booking.findById(req.params.bookingId);
-        if (!booking || booking.userId.toString() !== req.user) {
-            return res.status(STATUS.UNAUTHORISED).json({
-                success: false,
-                err: 'Unauthorized to view these payments',
-                message: 'Unauthorized',
-                data: {}
-            });
-        }
-
+        const response = await paymentService.getAllPayments(req.user);
         return res.status(STATUS.OK).json({
             success: true,
             err: {},
-            message: 'Payments fetched successfully',
-            data: response.payments
+            message: 'Successfully fetched all the payments',
+            data: response
         });
-    } catch (err) {
-        console.error('Error fetching payments:', err);
+    } catch (error) {
         return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
-            err: err.message,
-            message: 'Internal server error',
-            data: {}
-        });
-    }
-};
-
-/**
- * Simulates a payment gateway callback (for testing/demo).
- * In production, this would be a secured webhook endpoint.
- * @param {Request} req - Express request; paymentId and status in req.body.
- * @param {Response} res - Express response.
- * @returns {Promise<Response>} JSON response with updated payment.
- */
-const paymentCallback = async (req, res) => {
-    try {
-        const { paymentId, status } = req.body;
-
-        const response = await paymentService.handlePaymentCallback(paymentId, status);
-
-        if (response.err) {
-            return res.status(response.code).json({
-                success: false,
-                err: response.err,
-                message: 'Failed to process payment callback',
-                data: {}
-            });
-        }
-
-        return res.status(STATUS.OK).json({
-            success: true,
-            err: {},
-            message: 'Payment status updated successfully',
-            data: response.payment
-        });
-    } catch (err) {
-        console.error('Error processing payment callback:', err);
-        if (err.err) {
-            return res.status(err.code).json({
-                success: false,
-                err: err.err,
-                message: 'Failed to process payment callback',
-                data: {}
-            });
-        }
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
-            success: false,
-            err: err.message,
+            err: error.message,
             message: 'Internal server error',
             data: {}
         });
@@ -203,8 +129,7 @@ const paymentCallback = async (req, res) => {
 };
 
 module.exports = {
-    initiatePayment,
-    getPaymentStatus,
-    getPaymentsByBooking,
-    paymentCallback
+    createPayment,
+    getPaymentDetailsById,
+    getAllPayments
 };

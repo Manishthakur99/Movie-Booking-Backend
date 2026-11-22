@@ -1,20 +1,30 @@
 const showService = require('../services/show.service');
-const { successResponseBody, errorResponseBody } = require('../utils/responsebody');
 const { STATUS } = require('../utils/constants');
 
 const create = async (req, res) => {
     try {
         const response = await showService.createShow(req.body);
-        successResponseBody.message = "Successfully created the show";
-        successResponseBody.data = response;
-        return res.status(STATUS.CREATED).json(successResponseBody);
+        return res.status(STATUS.CREATED).json({
+            success: true,
+            err: {},
+            message: "Successfully created the show",
+            data: response
+        });
     } catch (error) {
         if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Failed to create show",
+                data: {}
+            });
         }
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
@@ -24,49 +34,82 @@ const create = async (req, res) => {
 const getShows = async (req, res) => {
     try {
         const response = await showService.getShows(req.query);
-        successResponseBody.message = "Successfully fetched the movie shows";
-        successResponseBody.data = response;
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully fetched the movie shows",
+            data: response
+        });
     } catch (error) {
         if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Failed to fetch shows",
+                data: {}
+            });
         }
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
 const destroy = async (req, res) => {
     try {
         const response = await showService.deleteShow(req.params.id);
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully deleted the show";
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully deleted the show",
+            data: response
+        });
     } catch (error) {
         if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Failed to delete show",
+                data: {}
+            });
         }
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
 const update = async (req, res) => {
     try {
         const response = await showService.updateShow(req.params.id, req.body);
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully updated the show";
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully updated the show",
+            data: response
+        });
     } catch (error) {
         if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Failed to update show",
+                data: {}
+            });
         }
         console.log(error);
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 

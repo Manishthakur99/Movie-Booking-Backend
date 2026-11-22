@@ -1,10 +1,6 @@
 const theatreService = require('../services/theatre.service');
-const { successResponseBody, errorResponseBody } = require('../utils/responsebody');
+const sendMail = require('../services/email.service');
 const { STATUS } = require('../utils/constants');
-
-// NOTE: `successResponseBody` / `errorResponseBody` are shared singleton objects
-// (see utils/responsebody.js). Mutating them here is unsafe under concurrency;
-// this file was kept as-is but should ideally build a fresh object per request.
 
 /**
  * Creates a new theatre.
@@ -32,6 +28,15 @@ const create = async (req, res) => {
                 message: "Unable to create the theatre",
                 data: {}
             });
+        }
+
+        // Send theatre creation notification to owner
+        if (req.user) {
+            sendMail(
+                'Theatre Created',
+                req.user,
+                `Your theatre "${response.theatre.name}" has been created successfully.`
+            );
         }
 
         // Return success response with 201 Created status
@@ -63,19 +68,29 @@ const destroy = async (req, res) => {
     try {
         // Call service to delete theatre by id
         const response = await theatreService.deleteTheatre(req.params.id);
-        // Set success response data and message
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully deleted the given theatre";
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully deleted the given theatre",
+            data: response
+        });
     } catch (error) {
         // Handle service errors with error code
         if (error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Unable to delete the theatre",
+                data: {}
+            });
         }
         // Handle unexpected errors with 500 status
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
@@ -89,19 +104,29 @@ const getTheatre = async (req, res) => {
     try {
         // Call service to get theatre by id
         const response = await theatreService.getTheatre(req.params.id);
-        // Set success response data and message
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully fetched the data of the theatre";
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully fetched the data of the theatre",
+            data: response
+        });
     } catch (error) {
         // Handle service errors with error code
         if (error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Unable to fetch the theatre",
+                data: {}
+            });
         }
         // Handle unexpected errors with 500 status
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
@@ -162,6 +187,16 @@ const updateTheatre = async (req, res) => {
                 data: {}
             });
         }
+
+        // Send theatre update notification to owner
+        if (response.theatre && response.theatre.owner) {
+            sendMail(
+                'Theatre Updated',
+                response.theatre.owner.toString(),
+                `Your theatre "${response.theatre.name}" has been updated.`
+            );
+        }
+
         // Return success response with updated theatre
         return res.status(STATUS.OK).json({
             success: true,
@@ -195,45 +230,40 @@ const updateMovies = async (req, res) => {
             req.body.movieIds,
             req.body.insert
         );
-        // Set success response data and message
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully updated movies in the theatre";
-        return res.status(STATUS.OK).json(successResponseBody);
-    } catch (error) {
-        // Handle service errors with error code
-        if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
-        }
-        // Handle unexpected errors with 500 status
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
-    }
-}
 
-/**
- * Updates a theatre by id (full or partial).
- * @param {Request} req - Express request; `req.params.id` is the theatre id, `req.body` holds the fields to update.
- * @param {Response} res - Express response used to send the result.
- * @returns {Promise<Response>} JSON response with status 200 on success or an error status.
- */
-const update = async (req, res) => {
-    try {
-        // Call service to update theatre by id with data from request body
-        const response = await theatreService.updateTheatre(req.params.id, req.body);
-        // Set success response data and message
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully updated the theatre";
-        return res.status(STATUS.OK).json(successResponseBody);
+        const action = req.body.insert ? 'added to' : 'removed from';
+        // Send notification about movies update
+        if (response && response.owner) {
+            sendMail(
+                `Movies ${action.charAt(0).toUpperCase() + action.slice(1)} Theatre`,
+                response.owner.toString(),
+                `${req.body.movieIds.length} movie(s) have been ${action} theatre "${response.name}".`
+            );
+        }
+
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully updated movies in the theatre",
+            data: response
+        });
     } catch (error) {
         // Handle service errors with error code
-        if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+        if (error.err) {
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Unable to update movies in the theatre",
+                data: {}
+            });
         }
         // Handle unexpected errors with 500 status
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
@@ -247,19 +277,29 @@ const getMovies = async (req, res) => {
     try {
         // Call service to get movies for a theatre
         const response = await theatreService.getMoviesInATheatre(req.params.id);
-        // Set success response data and message
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully fetched the movies for the theatre";
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully fetched the movies for the theatre",
+            data: response
+        });
     } catch (error) {
         // Handle service errors with error code
-        if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+        if (error.err) {
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Unable to fetch movies for the theatre",
+                data: {}
+            });
         }
         // Handle unexpected errors with 500 status
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
@@ -273,19 +313,29 @@ const checkMovie = async (req, res) => {
     try {
         // Call service to check if movie is in theatre
         const response = await theatreService.checkMovieInATheatre(req.params.theatreId, req.params.movieId);
-        // Set success response data and message
-        successResponseBody.data = response;
-        successResponseBody.message = "Successfully checked if movie is present in the theatre";
-        return res.status(STATUS.OK).json(successResponseBody);
+        return res.status(STATUS.OK).json({
+            success: true,
+            err: {},
+            message: "Successfully checked if movie is present in the theatre",
+            data: response
+        });
     } catch (error) {
         // Handle service errors with error code
-        if(error.err) {
-            errorResponseBody.err = error.err;
-            return res.status(error.code).json(errorResponseBody);
+        if (error.err) {
+            return res.status(error.code).json({
+                success: false,
+                err: error.err,
+                message: "Unable to check movie in theatre",
+                data: {}
+            });
         }
         // Handle unexpected errors with 500 status
-        errorResponseBody.err = error;
-        return res.status(STATUS.INTERNAL_SERVER_ERROR).json(errorResponseBody);
+        return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            err: error.message,
+            message: "Internal server error",
+            data: {}
+        });
     }
 }
 
@@ -296,7 +346,6 @@ module.exports = {
     getAllTheatres,
     updateTheatre,
     updateMovies,
-    update,
     getMovies,
     checkMovie
 };

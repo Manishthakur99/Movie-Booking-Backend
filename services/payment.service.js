@@ -1,36 +1,57 @@
 const mongoose = require('mongoose');
 const Payment = require('../models/payment.model');
 const Booking = require('../models/booking.model');
-const { STATUS, PAYMENT_STATUS, BOOKING_STATUS } = require('../utils/constants');
-
-// Service layer convention: success -> { payment } / { payments }, failure -> { err, code }
+const Show = require('../models/show.model');
+const User = require('../models/user.model');
+const { STATUS, PAYMENT_STATUS, BOOKING_STATUS, USER_ROLE } = require('../utils/constants');
 
 /**
- * Creates a payment record for a booking.
+ * Creates a payment record for a booking and processes the payment.
+ * Handles 5-minute booking expiry and seat count reduction on success.
  * @param {Object} data - Payment data (bookingId, amount).
- * @returns {Promise<Object>} Created payment or error object.
+ * @returns {Promise<Object>} Updated booking object (for email notification) or error object.
  */
 const createPayment = async (data) => {
     try {
-        // Validate booking exists and is in PROCESSING state
         const booking = await Booking.findById(data.bookingId);
         if (!booking) {
-            return { err: 'Booking not found', code: STATUS.NOT_FOUND };
+            throw { err: 'No booking found', code: STATUS.NOT_FOUND };
         }
 
-        if (booking.status !== BOOKING_STATUS.processing) {
-            return { err: 'Booking is not in a payable state', code: STATUS.BAD_REQUEST };
+        if (booking.status === BOOKING_STATUS.successfull) {
+            throw { err: 'Booking already done, cannot make a new payment against it', code: STATUS.FORBIDDEN };
+        }
+
+        // Check 5-minute expiry
+        const bookingTime = booking.createdAt;
+        const currentTime = Date.now();
+        const minutes = Math.floor(((currentTime - bookingTime) / 1000) / 60);
+        
+        if (minutes > 5) {
+            booking.status = BOOKING_STATUS.expired;
+            await booking.save();
+            return booking;
+        }
+
+        const show = await Show.findOne({
+            movieId: booking.movieId,
+            theatreId: booking.theatreId,
+            timing: booking.timing
+        });
+
+        if (!show) {
+            throw { err: 'Show not found', code: STATUS.NOT_FOUND };
         }
 
         // Validate amount matches booking totalCost
         if (data.amount !== booking.totalCost) {
-            return { err: 'Payment amount does not match booking total', code: STATUS.BAD_REQUEST };
+            throw { err: 'Payment amount does not match booking total', code: STATUS.BAD_REQUEST };
         }
 
         // Check if payment already exists for this booking
         const existingPayment = await Payment.findOne({ booking: data.bookingId });
         if (existingPayment) {
-            return { err: 'Payment already exists for this booking', code: STATUS.BAD_REQUEST };
+            throw { err: 'Payment already exists for this booking', code: STATUS.BAD_REQUEST };
         }
 
         const payment = await Payment.create({
@@ -39,7 +60,31 @@ const createPayment = async (data) => {
             status: PAYMENT_STATUS.pending
         });
 
-        return { payment };
+        // Simulate payment processing - fail if amount mismatch
+        if (payment.amount !== booking.totalCost) {
+            payment.status = PAYMENT_STATUS.failed;
+        }
+
+        if (!payment || payment.status === PAYMENT_STATUS.failed) {
+            booking.status = BOOKING_STATUS.cancelled;
+            await booking.save();
+            await payment.save();
+            return booking;
+        }
+
+        // Payment successful
+        payment.status = PAYMENT_STATUS.success;
+        booking.status = BOOKING_STATUS.successfull;
+        
+        // Reduce seat count
+        show.noOfSeats -= booking.noOfSeats;
+        if (show.noOfSeats < 0) show.noOfSeats = 0;
+        
+        await show.save();
+        await booking.save();
+        await payment.save();
+        
+        return booking;
     } catch (error) {
         if (error.name === 'ValidationError') {
             let err = {};
@@ -48,55 +93,7 @@ const createPayment = async (data) => {
             });
             return { err, code: STATUS.UNPROCESSABLE_ENTITY };
         }
-        throw error;
-    }
-};
-
-/**
- * Updates payment status and updates booking accordingly.
- * @param {string} paymentId - Payment ObjectId.
- * @param {string} status - New payment status (SUCCESS/FAILED).
- * @returns {Promise<Object>} Updated payment or error object.
- */
-const updatePaymentStatus = async (paymentId, status) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const payment = await Payment.findById(paymentId).session(session);
-        if (!payment) {
-            throw { err: 'Payment not found', code: STATUS.NOT_FOUND };
-        }
-
-        if (payment.status !== PAYMENT_STATUS.pending) {
-            throw { err: 'Payment already processed', code: STATUS.BAD_REQUEST };
-        }
-
-        payment.status = status;
-        await payment.save({ session });
-
-        // Update booking status based on payment result
-        const booking = await Booking.findById(payment.booking).session(session);
-        if (!booking) {
-            throw { err: 'Associated booking not found', code: STATUS.NOT_FOUND };
-        }
-
-        if (status === PAYMENT_STATUS.success) {
-            booking.status = BOOKING_STATUS.successfull;
-        } else if (status === PAYMENT_STATUS.failed) {
-            booking.status = BOOKING_STATUS.cancelled;
-        }
-        await booking.save({ session });
-
-        await session.commitTransaction();
-        session.endSession();
-
-        // Populate booking for response
-        await payment.populate('booking');
-        return { payment };
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
+        if (error.err) throw error;
         throw error;
     }
 };
@@ -104,7 +101,7 @@ const updatePaymentStatus = async (paymentId, status) => {
 /**
  * Gets payment by ID.
  * @param {string} id - Payment ObjectId.
- * @returns {Promise<Object>} Payment or error object.
+ * @returns {Promise<Object>} Payment with populated booking or error object.
  */
 const getPaymentById = async (id) => {
     try {
@@ -114,59 +111,37 @@ const getPaymentById = async (id) => {
 
         const payment = await Payment.findById(id).populate('booking');
         if (!payment) {
-            return { err: 'Payment not found', code: STATUS.NOT_FOUND };
+            return { err: 'No payment record found', code: STATUS.NOT_FOUND };
         }
-
-        return { payment };
+        return payment;
     } catch (error) {
         throw error;
     }
 };
 
 /**
- * Gets payments for a booking.
- * @param {string} bookingId - Booking ObjectId.
- * @returns {Promise<Object>} Payments or error object.
+ * Gets all payments (admin gets all, user gets own).
+ * @param {string} userId - User ObjectId.
+ * @returns {Promise<Object[]>} Payments list.
  */
-const getPaymentsByBooking = async (bookingId) => {
+const getAllPayments = async (userId) => {
     try {
-        if (!mongoose.isValidObjectId(bookingId)) {
-            return { err: 'Invalid booking ID', code: STATUS.BAD_REQUEST };
+        const user = await User.findById(userId);
+        let filter = {};
+        if (user.userRole !== USER_ROLE.admin) {
+            filter.userId = user.id;
         }
-
-        const payments = await Payment.find({ booking: bookingId }).populate('booking');
-        return { payments };
+        const bookings = await Booking.find(filter, '_id');
+        const bookingIds = bookings.map(b => b._id);
+        const payments = await Payment.find({ booking: { $in: bookingIds } }).populate('booking');
+        return payments;
     } catch (error) {
         throw error;
     }
-};
-
-/**
- * Simulates a payment gateway callback (for testing).
- * In production, this would be a webhook endpoint called by the payment provider.
- * @param {string} paymentId - Payment ObjectId.
- * @param {string} gatewayStatus - Status from payment gateway (success/failed).
- * @returns {Promise<Object>} Updated payment or error object.
- */
-const handlePaymentCallback = async (paymentId, gatewayStatus) => {
-    const statusMap = {
-        success: PAYMENT_STATUS.success,
-        failed: PAYMENT_STATUS.failed,
-        failure: PAYMENT_STATUS.failed
-    };
-
-    const status = statusMap[gatewayStatus?.toLowerCase()];
-    if (!status) {
-        return { err: 'Invalid gateway status', code: STATUS.BAD_REQUEST };
-    }
-
-    return updatePaymentStatus(paymentId, status);
 };
 
 module.exports = {
     createPayment,
-    updatePaymentStatus,
     getPaymentById,
-    getPaymentsByBooking,
-    handlePaymentCallback
+    getAllPayments
 };
